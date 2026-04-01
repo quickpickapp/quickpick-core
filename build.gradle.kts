@@ -6,8 +6,8 @@ plugins {
 
 group = "de.lukasbreuer.quickpick"
 version = "1.0.0-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_26
-java.targetCompatibility = JavaVersion.VERSION_26
+java.sourceCompatibility = JavaVersion.VERSION_25
+java.targetCompatibility = JavaVersion.VERSION_25
 
 repositories {
   mavenCentral()
