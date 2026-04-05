@@ -31,7 +31,7 @@ dependencies {
   implementation("commons-beanutils:commons-beanutils:1.11.0")
 
   implementation("org.postgresql:postgresql:42.7.10")
-  implementation("org.hibernate.orm:hibernate-core:7.2.6.Final")
+  implementation("org.hibernate.orm:hibernate-core:7.3.0.Final")
   implementation("org.reflections:reflections:0.10.2")
 
   implementation("org.springframework.boot:spring-boot-starter-web:4.0.5")
@@ -48,7 +48,7 @@ dependencies {
 
   implementation("dev.samstevens.totp:totp:1.7.1")
 
-  implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260102.1")
+  implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260313.1")
 }
 
 tasks.test {
