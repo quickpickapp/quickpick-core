@@ -4,7 +4,7 @@ plugins {
   id("io.freefair.lombok") version "9.2.0"
 }
 
-group = "de.lukasbreuer.quickpick"
+group = "com.quickpick.app"
 version = "1.0.0-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_25
 java.targetCompatibility = JavaVersion.VERSION_25
@@ -56,5 +56,5 @@ tasks.test {
 }
 
 tasks.bootJar {
-  mainClass = "de.lukasbreuer.quickpick.core.CoreApplication"
+  mainClass = "com.quickpick.app.core.CoreApplication"
 }
