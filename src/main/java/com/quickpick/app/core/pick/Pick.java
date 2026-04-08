@@ -1,15 +1,14 @@
 package com.quickpick.app.core.pick;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -18,10 +17,25 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(staticName = "create")
-public class UserJoin {
+public class Pick {
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
-  @Column(name = "date", nullable = false)
-  private long date;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "type", nullable = false)
+  private PickType type;
+  @Column(name = "content", nullable = false)
+  private String content;
+  @ElementCollection
+  @CollectionTable(
+    name = "pick_recipients",
+    joinColumns = @JoinColumn(name = "pick_id")
+  )
+  @MapKeyColumn(name = "recipient_id")
+  @Column(name = "decryption_key")
+  private Map<UUID, String> decryption_keys;
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private long createdAt;
+  @Column(name = "expires_at", nullable = false)
+  private long expiresAt;
 }

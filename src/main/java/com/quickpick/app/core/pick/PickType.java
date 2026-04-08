@@ -1,4 +1,6 @@
 package com.quickpick.app.core.pick;
 
-public class PickType {
+public enum PickType {
+  QUESTION,
+  SURVEY
 }
