@@ -20,8 +20,8 @@ import java.util.UUID;
 @AllArgsConstructor(staticName = "create")
 public final class UserEmailChange {
   @Id
-  @Column(name = "user", nullable = false, unique = true)
-  private UUID user;
+  @Column(name = "user_id", nullable = false, unique = true)
+  private UUID userId;
   @Column(name = "new_email", nullable = false)
   private String newEmail;
   @Column(name = "change_token", nullable = false)
