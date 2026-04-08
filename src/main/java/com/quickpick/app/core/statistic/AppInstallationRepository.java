@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface UserJoinRepository extends DatabaseRepository<UserJoin, UUID> {
+public interface AppInstallationRepository extends DatabaseRepository<AppInstallation, UUID> {
 }

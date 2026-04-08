@@ -13,15 +13,15 @@ import lombok.experimental.Accessors;
 import java.util.UUID;
 
 @Entity
-@Table(name = "user_joins")
+@Table(name = "app_installation")
 @Getter
 @Accessors(fluent = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(staticName = "create")
-public class UserJoin {
+public class AppInstallation {
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
-  @Column(name = "date", nullable = false)
-  private long date;
+  @Column(name = "installed_at", nullable = false, updatable = false)
+  private long joinedAt;
 }

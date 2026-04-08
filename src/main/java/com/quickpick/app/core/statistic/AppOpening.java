@@ -22,8 +22,8 @@ public class AppOpening {
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
-  @Column(name = "date", nullable = false)
-  private long date;
-  @Column(name = "version", nullable = false)
+  @Column(name = "opened_at", nullable = false, updatable = false)
+  private long openedAt;
+  @Column(name = "version", nullable = false, updatable = false)
   private String version;
 }
