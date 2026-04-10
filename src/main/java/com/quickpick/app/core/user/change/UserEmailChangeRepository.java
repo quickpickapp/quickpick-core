@@ -1,4 +1,4 @@
-package com.quickpick.app.core.user;
+package com.quickpick.app.core.user.change;
 
 import com.quickpick.app.core.database.DatabaseRepository;
 import org.springframework.stereotype.Repository;

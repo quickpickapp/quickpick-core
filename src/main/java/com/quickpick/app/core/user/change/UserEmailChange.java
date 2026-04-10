@@ -1,4 +1,4 @@
-package com.quickpick.app.core.user;
+package com.quickpick.app.core.user.change;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +24,6 @@ public final class UserEmailChange {
   private UUID userId;
   @Column(name = "new_email", nullable = false)
   private String newEmail;
-  @Column(name = "change_token", nullable = false)
-  private String changeToken;
+  @Column(name = "code", nullable = false)
+  private String code;
 }
