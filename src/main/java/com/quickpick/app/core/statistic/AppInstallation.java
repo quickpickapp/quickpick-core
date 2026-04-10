@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 import java.util.UUID;
 
 @Entity
-@Table(name = "app_installation")
+@Table(name = "app_installations")
 @Getter
 @Accessors(fluent = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
