@@ -26,6 +26,8 @@ public final class User {
   private String name;
   @Column(name = "email", nullable = false, unique = true)
   private String email;
+  @Column(name = "compliant", nullable = false)
+  private boolean compliant;
   @Column(name = "public_key", nullable = false)
   private String publicKey;
   @Column(name = "joined_at", nullable = false, updatable = false)
