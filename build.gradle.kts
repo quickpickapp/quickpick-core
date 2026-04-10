@@ -26,6 +26,7 @@ dependencies {
   testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
 
   implementation("org.json:json:20251224")
+  implementation("commons-io:commons-io:2.20.0")
 
   implementation("org.apache.commons:commons-configuration2:2.13.0")
   implementation("commons-beanutils:commons-beanutils:1.11.0")
@@ -44,11 +45,17 @@ dependencies {
 
   implementation("io.jsonwebtoken:jjwt:0.13.0")
 
-  implementation("com.sun.mail:javax.mail:1.6.2")
+  implementation("com.nimbusds:nimbus-jose-jwt:10.9")
 
   implementation("dev.samstevens.totp:totp:1.7.1")
 
+  compileOnly("com.maxmind.geoip2:geoip2:4.4.0")
+
+  implementation("com.sun.mail:javax.mail:1.6.2")
+
   implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260313.1")
+
+  implementation("com.google.api-client:google-api-client:2.8.1")
 }
 
 tasks.test {
