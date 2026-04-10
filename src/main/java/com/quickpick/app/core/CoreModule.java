@@ -22,7 +22,7 @@ public class CoreModule {
 
   @Bean
   AbstractConfiguration configurationFile() throws Exception {
-    return new Configurations().ini(new File("config.ini"));
+    return new Configurations().ini(new File("configurations/config.ini"));
   }
 
   @Bean
