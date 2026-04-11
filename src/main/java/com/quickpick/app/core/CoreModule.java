@@ -1,9 +1,9 @@
 package com.quickpick.app.core;
 
+import com.quickpick.app.core.api.ApiModule;
 import com.quickpick.app.core.event.EventExecutor;
 import com.quickpick.app.core.event.HookRegistry;
 import com.quickpick.app.core.log.Log;
-import com.quickpick.app.core.api.ApiModule;
 import org.apache.commons.configuration2.AbstractConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.springframework.context.annotation.Bean;

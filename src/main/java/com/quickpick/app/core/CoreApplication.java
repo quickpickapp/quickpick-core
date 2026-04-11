@@ -1,10 +1,10 @@
 package com.quickpick.app.core;
 
+import com.quickpick.app.core.api.ApiConfiguration;
+import com.quickpick.app.core.application.ApplicationLaunchEvent;
 import com.quickpick.app.core.event.EventExecutor;
 import com.quickpick.app.core.event.HookRegistry;
 import com.quickpick.app.core.log.Log;
-import com.quickpick.app.core.api.ApiConfiguration;
-import com.quickpick.app.core.application.ApplicationLaunchEvent;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
