@@ -26,7 +26,7 @@ dependencies {
   testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
 
   implementation("org.json:json:20251224")
-  implementation("commons-io:commons-io:2.20.0")
+  implementation("commons-io:commons-io:2.21.0")
 
   implementation("org.apache.commons:commons-configuration2:2.14.0")
   implementation("commons-beanutils:commons-beanutils:1.11.0")
