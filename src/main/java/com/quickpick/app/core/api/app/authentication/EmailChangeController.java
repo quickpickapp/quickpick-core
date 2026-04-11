@@ -26,19 +26,19 @@ import java.util.concurrent.CompletableFuture;
 public final class EmailChangeController extends AppRestController {
   private final UserEmailChangeRepository emailChangeRepository;
   private final Mail verificationMail;
-  private final VerificationCodeTemplate verificationCodeTemplate;
+  private final VerificationCodeFactory verificationCodeFactory;
 
   private EmailChangeController(
     @Qualifier("authenticationKey") Key authenticationKey,
     UserRepository userRepository,
     UserEmailChangeRepository emailChangeRepository,
     @Qualifier("verificationMail") Mail verificationMail,
-    VerificationCodeTemplate verificationCodeTemplate
+    VerificationCodeFactory verificationCodeFactory
   ) {
     super(authenticationKey, userRepository);
     this.emailChangeRepository = emailChangeRepository;
     this.verificationMail = verificationMail;
-    this.verificationCodeTemplate = verificationCodeTemplate;
+    this.verificationCodeFactory = verificationCodeFactory;
   }
 
   @RequestMapping(path = "/email/change/request/", method = RequestMethod.POST)
@@ -68,8 +68,7 @@ public final class EmailChangeController extends AppRestController {
     if (emailExists) {
       return Map.of("success", false, "error", 1001);
     }
-    var verification = VerificationCode.create(verificationCodeTemplate);
-    verification.generate();
+    var verification = verificationCodeFactory.generate();
     emailChangeRepository.save(UserEmailChange.create(
       user.id(), email, verification.code()));
     verificationMail.send(email, VERIFICATION_EMAIL_TITLE, verification.content());

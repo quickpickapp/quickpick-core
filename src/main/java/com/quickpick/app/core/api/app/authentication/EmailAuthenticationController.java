@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 public final class EmailAuthenticationController extends AppRestController {
   private final UserVerificationRepository userVerificationRepository;
   private final Mail verificationMail;
-  private final VerificationCodeTemplate verificationCodeTemplate;
+  private final VerificationCodeFactory verificationCodeFactory;
   private final AuthenticationSignup userBindSignup;
   private final AuthenticationCompletion userBindCompletion;
 
@@ -34,14 +34,14 @@ public final class EmailAuthenticationController extends AppRestController {
     UserRepository userRepository,
     UserVerificationRepository userVerificationRepository,
     @Qualifier("verificationMail") Mail verificationMail,
-    VerificationCodeTemplate verificationCodeTemplate,
+    VerificationCodeFactory verificationCodeFactory,
     AuthenticationSignup userBindSignup,
     AuthenticationCompletion userBindCompletion
   ) {
     super(authenticationKey, userRepository);
     this.userVerificationRepository = userVerificationRepository;
     this.verificationMail = verificationMail;
-    this.verificationCodeTemplate = verificationCodeTemplate;
+    this.verificationCodeFactory = verificationCodeFactory;
     this.userBindSignup = userBindSignup;
     this.userBindCompletion = userBindCompletion;
   }
@@ -76,8 +76,7 @@ public final class EmailAuthenticationController extends AppRestController {
   private Map<String, Object> requestUserBinding(
     UUID userId, String email
   ) {
-    var verificationCode = VerificationCode.create(verificationCodeTemplate);
-    verificationCode.generate();
+    var verificationCode = verificationCodeFactory.generate();
     userVerificationRepository.save(UserVerification.create(userId, email,
       verificationCode.code()));
     verificationMail.send(email, VERIFICATION_EMAIL_TITLE,

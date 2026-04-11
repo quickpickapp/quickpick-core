@@ -11,10 +11,10 @@ import java.security.SecureRandom;
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class VerificationCode {
-  private static final MailTemplate verificationCodeTemplate = MailTemplate.createAndLoad("verification-template");
+  private final MailTemplate verificationCodeTemplate;
+  private final SecureRandom secureRandom = new SecureRandom();
   private String code;
   private String content;
-  private final SecureRandom secureRandom = new SecureRandom();
 
   public void generate() {
     code = generateCode();
