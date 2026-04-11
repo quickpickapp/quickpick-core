@@ -49,7 +49,7 @@ dependencies {
 
   implementation("dev.samstevens.totp:totp:1.7.1")
 
-  compileOnly("com.maxmind.geoip2:geoip2:4.4.0")
+  compileOnly("com.maxmind.geoip2:geoip2:5.0.2")
 
   implementation("com.sun.mail:javax.mail:1.6.2")
 
