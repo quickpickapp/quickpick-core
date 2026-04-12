@@ -20,10 +20,10 @@ import java.security.Key;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class PickDeleteController extends AppRestController {
+public final class PickFindController extends AppRestController {
   private final PickRepository pickRepository;
 
-  private PickDeleteController(
+  private PickFindController(
     @Qualifier("authenticationKey") Key authenticationKey,
     UserRepository userRepository, PickRepository pickRepository
   ) {
@@ -32,8 +32,8 @@ public final class PickDeleteController extends AppRestController {
   }
 
   @AppEndpoint
-  @RequestMapping(path = "/pick/delete/", method = RequestMethod.POST)
-  public CompletableFuture<ApiResponse> deletePick(
+  @RequestMapping(path = "/pick/find/", method = RequestMethod.POST)
+  public CompletableFuture<ApiResponse> findPick(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
@@ -41,17 +41,19 @@ public final class PickDeleteController extends AppRestController {
     var pickId = body.getUUID("pick_id");
     return findUser(request)
       .thenCompose(user -> pickRepository.findById(pickId)
-        .thenCompose(entry -> entry
+        .thenApply(entry -> entry
           .map(pick -> deletePick(user, pick))
-          .orElse(ApiResponse.error(1000, "Pick not found").future())));
+          .orElse(ApiResponse.error(1000, "Pick not found"))));
   }
 
-  private CompletableFuture<ApiResponse> deletePick(
+  private ApiResponse deletePick(
     User user, Pick pick
   ) {
-    if (!pick.creatorId().equals(user.id())) {
-      return ApiResponse.error(1001, "Not the pick creator").future();
+    var hasPermission = pick.recipients().stream()
+      .anyMatch(recipient -> recipient.recipientId().equals(user.id()));
+    if (!hasPermission) {
+      return ApiResponse.error(1001, "Insufficient permissions");
     }
-    return pickRepository.delete(pick).thenApply(_ -> ApiResponse.success());
+    return ApiResponse.success(pick.information(user.id()));
   }
 }
