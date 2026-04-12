@@ -28,31 +28,10 @@ public class AppRestController {
    * @return The user
    */
   protected CompletableFuture<User> findUser(
-    HttpServletRequest request, HttpServletResponse response
+    HttpServletRequest request
   ) {
-    try {
-      var apiKey = findApiKey(request);
-      var status = checkApiKey(apiKey);
-      if (status != HttpServletResponse.SC_ACCEPTED) {
-        response.setStatus(status);
-        return CompletableFuture.completedFuture(null);
-      }
-      var userId = findUserId(apiKey);
-      return userRepository.existsById(userId)
-        .thenCompose(exists -> findUser(response, userId, exists));
-    } catch (Exception exception) {
-      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-      return CompletableFuture.completedFuture(null);
-    }
-  }
-
-  private CompletableFuture<User> findUser(
-    HttpServletResponse response, UUID userId, boolean exists
-  ) {
-    if (!exists) {
-      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-      return CompletableFuture.completedFuture(null);
-    }
+    var apiKey = findApiKey(request);
+    var userId = findUserId(apiKey);
     return userRepository.findById(userId).thenApply(user -> user.orElse(null));
   }
 
