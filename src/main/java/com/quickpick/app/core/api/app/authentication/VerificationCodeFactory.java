@@ -9,7 +9,7 @@ import java.security.SecureRandom;
 @Configuration
 public final class VerificationCodeFactory {
   private final MailTemplate verificationCodeTemplate;
-  private final SecureRandom secureRandom = new SecureRandom();
+  private final SecureRandom random = new SecureRandom();
 
   private VerificationCodeFactory(
     @Qualifier("verificationCodeTemplate") MailTemplate verificationCodeTemplate
@@ -18,7 +18,7 @@ public final class VerificationCodeFactory {
   }
 
   public VerificationCode generate() {
-    var code = VerificationCode.create(verificationCodeTemplate);
+    var code = VerificationCode.create(verificationCodeTemplate, random);
     code.generate();
     return code;
   }

@@ -5,14 +5,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.security.SecureRandom;
+import java.util.Random;
 
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
 public final class VerificationCode {
   private final MailTemplate verificationCodeTemplate;
-  private final SecureRandom secureRandom = new SecureRandom();
+  private final Random secureRandom;
   private String code;
   private String content;
 
