@@ -1,4 +1,4 @@
-package com.quickpick.app.core.statistic;
+package com.quickpick.app.core.statistic.installation;
 
 import com.quickpick.app.core.database.DatabaseRepository;
 import org.springframework.stereotype.Repository;

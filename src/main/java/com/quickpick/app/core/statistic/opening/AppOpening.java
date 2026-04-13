@@ -1,4 +1,4 @@
-package com.quickpick.app.core.statistic;
+package com.quickpick.app.core.statistic.opening;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,15 +13,17 @@ import lombok.experimental.Accessors;
 import java.util.UUID;
 
 @Entity
-@Table(name = "app_installations")
+@Table(name = "app_openings")
 @Getter
 @Accessors(fluent = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(staticName = "create")
-public class AppInstallation {
+public class AppOpening {
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
-  @Column(name = "installed_at", nullable = false, updatable = false)
-  private long joinedAt;
+  @Column(name = "opened_at", nullable = false, updatable = false)
+  private long openedAt;
+  @Column(name = "version", nullable = false, updatable = false)
+  private String version;
 }
