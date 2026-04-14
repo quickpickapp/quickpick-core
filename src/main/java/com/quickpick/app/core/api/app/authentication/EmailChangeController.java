@@ -52,7 +52,7 @@ public final class EmailChangeController extends AppRestController {
       return CompletableFuture.completedFuture(Map.of("success", false,
         "error", 1000));
     }
-    return findUser(request, response)
+    return findUser(request)
       .thenCompose(user -> userRepository().existsByEmail(email)
         .thenApply(exists -> requestUserEmailChange(user, email, exists)));
   }
@@ -82,7 +82,7 @@ public final class EmailChangeController extends AppRestController {
   ) {
     var body = ApiRequestBody.of(payload, response);
     var code = body.getString("code");
-    return findUser(request, response)
+    return findUser(request)
       .thenCompose(user -> completeUserEmailChange(user, code));
   }
 

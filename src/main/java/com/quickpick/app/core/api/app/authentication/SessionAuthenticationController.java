@@ -94,7 +94,7 @@ public final class SessionAuthenticationController extends AppRestController {
     HttpServletRequest request, HttpServletResponse response
   ) {
     var sessionId = findSessionId(request);
-    return findUser(request, response)
+    return findUser(request)
       .thenCompose(user -> user == null ?
         CompletableFuture.completedFuture(null) :
         sessionRepository.findById(sessionId).thenApply(Optional::get)
@@ -110,7 +110,7 @@ public final class SessionAuthenticationController extends AppRestController {
   public CompletableFuture<Map<String, Object>> isAuthorized(
     HttpServletRequest request, HttpServletResponse response
   ) {
-    return findUser(request, response)
+    return findUser(request)
       .thenApply(user -> Map.of("authorized", user != null));
   }
 
