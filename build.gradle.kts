@@ -32,7 +32,7 @@ dependencies {
   implementation("commons-beanutils:commons-beanutils:1.11.0")
 
   implementation("org.postgresql:postgresql:42.7.10")
-  implementation("org.hibernate.orm:hibernate-core:7.3.1.Final")
+  implementation("org.hibernate.orm:hibernate-core:7.3.2.Final")
   implementation("org.reflections:reflections:0.10.2")
 
   implementation("org.springframework.boot:spring-boot-starter-web:4.0.5")
