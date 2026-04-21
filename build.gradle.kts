@@ -1,7 +1,7 @@
 plugins {
   id("java")
   id("org.springframework.boot") version "4.0.5"
-  id("io.freefair.lombok") version "9.2.0"
+  id("io.freefair.lombok") version "9.4.0"
 }
 
 group = "com.quickpick.app"
