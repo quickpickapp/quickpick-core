@@ -19,12 +19,12 @@ import java.security.Key;
 import java.util.List;
 
 @Component
-public final class AppAuthorizationFilter extends OncePerRequestFilter {
+public final class AppAuthenticationFilter extends OncePerRequestFilter {
   private final Key authenticationKey;
   private final EndpointRepository endpointRepository;
   private List<String> targetEndpoints = Lists.newArrayList();
 
-  private AppAuthorizationFilter(
+  private AppAuthenticationFilter(
     @Qualifier("authenticationKey") Key authenticationKey,
     EndpointRepository endpointRepository
   ) {
