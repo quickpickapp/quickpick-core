@@ -7,11 +7,11 @@ import org.springframework.context.annotation.Configuration;
 import java.security.SecureRandom;
 
 @Configuration
-public final class VerificationCodeFactory {
+public class VerificationCodeFactory {
   private final MailTemplate verificationCodeTemplate;
   private final SecureRandom random = new SecureRandom();
 
-  private VerificationCodeFactory(
+  VerificationCodeFactory(
     @Qualifier("verificationCodeTemplate") MailTemplate verificationCodeTemplate
   ) {
     this.verificationCodeTemplate = verificationCodeTemplate;
