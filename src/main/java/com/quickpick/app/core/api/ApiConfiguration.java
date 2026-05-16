@@ -4,7 +4,7 @@ import com.quickpick.app.core.configuration.Configuration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public final class ApiConfiguration implements Configuration {
   private List<String> allowedOrigins;
 
   @Override
-  public void load(AbstractConfiguration file) {
+  public void load(INIConfiguration file) {
     port = file.getInt("api.port");
     authenticationKey = file.getString("api.authentication_key");
     refreshKey = file.getString("api.refresh_key");

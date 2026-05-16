@@ -1,7 +1,7 @@
 package com.quickpick.app.core.api;
 
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +13,7 @@ import java.security.Key;
 @Configuration
 public class ApiModule {
   @Bean
-  ApiConfiguration apiConfiguration(AbstractConfiguration file) {
+  ApiConfiguration apiConfiguration(INIConfiguration file) {
     var configuration = ApiConfiguration.create();
     configuration.load(file);
     return configuration;

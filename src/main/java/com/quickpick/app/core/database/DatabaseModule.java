@@ -1,7 +1,7 @@
 package com.quickpick.app.core.database;
 
 import jakarta.persistence.EntityManagerFactory;
-import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +15,7 @@ import java.util.Properties;
 @Configuration
 public class DatabaseModule {
   @Bean
-  public DatabaseConfiguration databaseConfiguration(AbstractConfiguration file) {
+  public DatabaseConfiguration databaseConfiguration(INIConfiguration file) {
     var configuration = DatabaseConfiguration.create();
     configuration.load(file);
     return configuration;

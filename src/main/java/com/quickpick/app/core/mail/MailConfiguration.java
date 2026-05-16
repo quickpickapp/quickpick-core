@@ -4,7 +4,7 @@ import com.quickpick.app.core.configuration.Configuration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
 
 @Getter
 @Accessors(fluent = true)
@@ -20,13 +20,14 @@ public final class MailConfiguration implements Configuration {
   private String password;
 
   @Override
-  public void load(AbstractConfiguration file) {
-    mail = file.getString(name + ".mail");
-    smtpHost = file.getString(name + ".smpt_host");
-    smtpPort = file.getInt(name + ".smpt_port");
-    imapHost = file.getString(name + ".imap_host");
-    imapPort = file.getInt(name + ".imap_port");
-    user = file.getString(name + ".user");
-    password = file.getString(name + ".password");
+  public void load(INIConfiguration file) {
+    var section = "mail." + name;
+    mail = file.getSection(section).getString("mail");
+    smtpHost = file.getSection(section).getString("smtp_host");
+    smtpPort = file.getSection(section).getInt("smtp_port");
+    imapHost = file.getSection(section).getString("imap_host");
+    imapPort = file.getSection(section).getInt("imap_port");
+    user = file.getSection(section).getString("user");
+    password = file.getSection(section).getString("password");
   }
 }

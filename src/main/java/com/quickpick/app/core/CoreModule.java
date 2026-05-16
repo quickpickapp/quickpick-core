@@ -4,7 +4,7 @@ import com.quickpick.app.core.api.ApiModule;
 import com.quickpick.app.core.event.EventExecutor;
 import com.quickpick.app.core.event.HookRegistry;
 import com.quickpick.app.core.log.Log;
-import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ public class CoreModule {
   }
 
   @Bean
-  AbstractConfiguration configurationFile() throws Exception {
+  INIConfiguration configurationFile() throws Exception {
     return new Configurations().ini(new File("configurations/config.ini"));
   }
 

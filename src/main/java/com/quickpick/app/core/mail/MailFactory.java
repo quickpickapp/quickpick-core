@@ -3,7 +3,7 @@ package com.quickpick.app.core.mail;
 import com.quickpick.app.core.log.Log;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,7 +12,7 @@ public class MailFactory {
   private final Log log;
   private final OutgoingMailRepository outgoingMailDatabaseTable;
   private final MailTemplate mailTemplate;
-  private final AbstractConfiguration file;
+  private final INIConfiguration file;
 
   public Mail create(String name) {
     var configuration = MailConfiguration.create(name);

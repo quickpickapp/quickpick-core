@@ -1,6 +1,6 @@
 package com.quickpick.app.core.configuration;
 
-import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
 
 public interface Configuration {
   /**
@@ -8,5 +8,5 @@ public interface Configuration {
    * configuration file, which can be used later on
    * @param file The configuration file
    */
-  void load(AbstractConfiguration file);
+  void load(INIConfiguration file);
 }

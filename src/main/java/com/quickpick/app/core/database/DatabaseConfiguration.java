@@ -4,7 +4,7 @@ import com.quickpick.app.core.configuration.Configuration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
 
 @Getter
 @Accessors(fluent = true)
@@ -17,7 +17,7 @@ public final class DatabaseConfiguration implements Configuration {
   private String database;
 
   @Override
-  public void load(AbstractConfiguration file) {
+  public void load(INIConfiguration file) {
     hostname = file.getString("database.hostname");
     port = file.getInt("database.port");
     username = file.getString("database.username");
