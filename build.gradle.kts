@@ -1,3 +1,7 @@
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import java.net.URI
+import java.util.zip.GZIPInputStream
+
 plugins {
   id("java")
   id("org.springframework.boot") version "4.0.6"
@@ -64,4 +68,44 @@ tasks.test {
 
 tasks.bootJar {
   mainClass = "com.quickpick.app.core.CoreApplication"
+}
+
+tasks.register("downloadGeoLite2Database") {
+  val licenseKey = System.getenv("GEOLITE2_LICENSE_KEY") ?:
+  findProperty("geolite2.license.key") as String?
+  val databaseUrl = "https://download.maxmind.com/app/geoip_download?" +
+    "edition_id=GeoLite2-City&license_key=$licenseKey&suffix=tar.gz"
+  val resourcesDir = File("geo")
+  val downloadFile = layout.buildDirectory.file("GeoLite2-City.tar.gz").get().asFile
+  doLast {
+    resourcesDir.mkdirs()
+    downloadFile.parentFile.mkdirs()
+    if (downloadFile.exists()) {
+      downloadFile.delete()
+    }
+    URI(databaseUrl).toURL().openStream().use { input ->
+      downloadFile.outputStream().use { output ->
+        input.copyTo(output)
+      }
+    }
+    extract(downloadFile, resourcesDir)
+    downloadFile.delete()
+  }
+}
+
+fun extract(file: File, destination: File) {
+  GZIPInputStream(file.inputStream()).use { gis ->
+    TarArchiveInputStream(gis).use { tis ->
+      var entry = tis.nextEntry
+      while (entry != null) {
+        if (!entry.isDirectory && entry.name.endsWith(".mmdb")) {
+          val outputFile = File(destination, "GeoLite2-City.mmdb")
+          outputFile.outputStream().use { os ->
+            tis.copyTo(os)
+          }
+        }
+        entry = tis.nextEntry
+      }
+    }
+  }
 }
