@@ -10,4 +10,6 @@ import java.util.concurrent.CompletableFuture;
 
 @Repository
 public interface UserRepository extends DatabaseRepository<User, UUID> {
+  @Async
+  CompletableFuture<Optional<User>> findByPhoneNumber(String phoneNumber);
 }

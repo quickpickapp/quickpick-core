@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.InetAddress;
 import java.security.Key;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -66,13 +67,34 @@ public class SignupController extends AppRestController {
 
   @RequestMapping(path = "/signup/verify/code/", method = RequestMethod.POST)
   public CompletableFuture<ApiResponse> verifySignupCode(
-    @RequestBody String payload, HttpServletResponse response
+    HttpServletRequest request,@RequestBody String payload,
+    HttpServletResponse response
   ) {
     var body = ApiRequestBody.of(payload, response);
     var phoneNumber = body.getString("phone_number");
     var code = body.getString("code");
     return smsVerification.verifyCode(phoneNumber, code)
-      .thenApply(approved -> );
+      .thenCompose(approved -> verifySignupCode(request, phoneNumber, approved));
+  }
+
+  private CompletableFuture<ApiResponse> verifySignupCode(
+    HttpServletRequest request, String phoneNumber, boolean approved
+  ) {
+    if (!approved) {
+      return ApiResponse.error(1000).future();
+    }
+    return userRepository().findByPhoneNumber(phoneNumber)
+      .thenCompose(user -> verifySignupCode(request, user));
+  }
+
+  private CompletableFuture<ApiResponse> verifySignupCode(
+    HttpServletRequest request, Optional<User> user
+  ) {
+    if (user.isEmpty()) {
+      return ApiResponse.success(Map.of("new_user", true)).future();
+    }
+    return completeSignup(request, user.get()).thenApply(response ->
+      response.expand(Map.of("new_user", false)));
   }
 
   @RequestMapping(path = "/signup/complete/", method = RequestMethod.POST)
@@ -102,21 +124,21 @@ public class SignupController extends AppRestController {
     }
     return userDeviceRepository.generateAvailableId(UUID::randomUUID)
       .thenCompose(deviceId -> signupUser(userId, body.getSanitizedString("name"),
-        body.getString("public_key"), legalAccepted, deviceId,
-        body.getString("device_id"), body.getString("operating_system"),
+        body.getString("phone_number"), body.getString("public_key"), legalAccepted,
+        deviceId, body.getString("device_id"), body.getString("operating_system"),
         body.getString("operating_system_version"),
         body.getString("device_brand"), body.getString("device_model"),
         body.getString("device_name")));
   }
 
   private CompletableFuture<User> signupUser(
-    UUID id, String name, String publicKey, boolean compliant,
+    UUID id, String phoneNumber, String name, String publicKey, boolean compliant,
     UUID deviceId, String publicDeviceId, String operatingSystem,
     String operatingSystemVersion, String deviceBrand, String deviceModel,
     String deviceName
   ) {
     var processes = Lists.<CompletableFuture<Void>>newArrayList();
-    var user = User.create(id, name, compliant, publicKey,
+    var user = User.create(id, phoneNumber, name, compliant, publicKey,
       System.currentTimeMillis());
     var device = UserDevice.create(deviceId, id, publicDeviceId, operatingSystem,
       operatingSystemVersion, deviceBrand, deviceModel, deviceName);
