@@ -22,10 +22,10 @@ public final class User {
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
+  @Column(name = "phone_number", nullable = false)
+  private String phoneNumber;
   @Column(name = "name", nullable = false)
   private String name;
-  @Column(name = "email", nullable = false, unique = true)
-  private String email;
   @Column(name = "compliant", nullable = false)
   private boolean compliant;
   @Column(name = "public_key", nullable = false)
@@ -35,9 +35,5 @@ public final class User {
 
   public void changeName(String newName) {
     this.name = newName;
-  }
-
-  public void changeEmail(String newEmail) {
-    this.email = newEmail;
   }
 }

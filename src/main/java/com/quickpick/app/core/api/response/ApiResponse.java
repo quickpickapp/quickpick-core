@@ -1,6 +1,6 @@
 package com.quickpick.app.core.api.response;
 
-import com.beust.jcommander.internal.Maps;
+import com.google.common.collect.Maps;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

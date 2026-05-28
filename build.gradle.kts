@@ -51,15 +51,13 @@ dependencies {
 
   implementation("com.nimbusds:nimbus-jose-jwt:10.9")
 
-  implementation("dev.samstevens.totp:totp:1.7.1")
-
   implementation("com.maxmind.geoip2:geoip2:5.1.0")
-
-  implementation("com.sun.mail:javax.mail:1.6.2")
 
   implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260313.1")
 
   implementation("com.google.api-client:google-api-client:2.9.0")
+
+  implementation("com.twilio.sdk:twilio:12.1.1")
 }
 
 tasks.test {

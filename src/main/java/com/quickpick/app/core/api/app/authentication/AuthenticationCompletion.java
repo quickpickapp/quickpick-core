@@ -1,6 +1,7 @@
 package com.quickpick.app.core.api.app.authentication;
 
 import com.maxmind.geoip2.DatabaseReader;
+import com.quickpick.app.core.api.response.ApiResponse;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.session.UserAgent;
 import com.quickpick.app.core.user.session.UserSession;
@@ -22,23 +23,23 @@ public class AuthenticationCompletion {
   private final UserSessionRepository sessionRepository;
   private final DatabaseReader geoDatabaseReader;
 
-  public CompletableFuture<Map<String, Object>> completeBinding(
+  public CompletableFuture<ApiResponse> completeBinding(
     HttpServletRequest request, User user
   ) {
     return sessionRepository.generateAvailableId(UUID::randomUUID)
       .thenComposeAsync(sessionId -> completeBinding(request, user, sessionId));
   }
 
-  private CompletableFuture<Map<String, Object>> completeBinding(
+  private CompletableFuture<ApiResponse> completeBinding(
     HttpServletRequest request, User user, UUID sessionId
   ) {
     var authenticationToken = tokenFactory.generateAuthenticationToken(
       user.id(), sessionId);
     var refreshToken = tokenFactory.generateRefreshToken(user.id(), sessionId);
     return storeSession(request, user.id(), sessionId, refreshToken)
-      .thenApply(_ -> Map.of("success", true, "email", user.email(),
-        "user", user.id(), "authentication_token", authenticationToken,
-        "refresh_token", refreshToken));
+      .thenApply(_ -> ApiResponse.success(Map.of("user", user.id(),
+        "authentication_token", authenticationToken,
+        "refresh_token", refreshToken)));
   }
 
   private CompletableFuture<UserSession> storeSession(

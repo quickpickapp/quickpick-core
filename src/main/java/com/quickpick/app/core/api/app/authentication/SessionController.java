@@ -1,6 +1,7 @@
 package com.quickpick.app.core.api.app.authentication;
 
 import com.quickpick.app.core.api.request.ApiRequestBody;
+import com.quickpick.app.core.api.response.ApiResponse;
 import com.quickpick.app.core.api.security.app.AppRestController;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
@@ -23,12 +24,12 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class SessionAuthenticationController extends AppRestController {
+public final class SessionController extends AppRestController {
   private final Key refreshKey;
   private final TokenFactory tokenFactory;
   private final UserSessionRepository sessionRepository;
 
-  private SessionAuthenticationController(
+  private SessionController(
     @Qualifier("authenticationKey") Key authenticationKey,
     @Qualifier("refreshKey") Key refreshKey,
     UserRepository userRepository, TokenFactory tokenFactory,
@@ -40,44 +41,44 @@ public final class SessionAuthenticationController extends AppRestController {
     this.sessionRepository = sessionRepository;
   }
 
-  @RequestMapping(path = "/authentication/refresh/", method = RequestMethod.POST)
-  public CompletableFuture<Map<String, Object>> refreshAuthorization(
+  @RequestMapping(path = "/refresh/", method = RequestMethod.POST)
+  public CompletableFuture<ApiResponse> refresh(
     @RequestBody String payload, HttpServletResponse response
   ) {
     var body = ApiRequestBody.of(payload, response);
     var refreshToken = body.getString("refresh_token");
     var result = verifyToken(refreshKey, refreshToken);
     if (result == null) {
-      return CompletableFuture.completedFuture(Map.of("success", false));
+      return ApiResponse.error(1000).future();
     }
     var userId = UUID.fromString(result.get("id", String.class));
     var sessionId = UUID.fromString(result.get("session", String.class));
     return userRepository().existsById(userId)
       .thenCompose(userExists -> sessionRepository.existsById(sessionId)
-        .thenCompose(sessionExists -> refreshAuthorization(refreshToken, userId,
+        .thenCompose(sessionExists -> refresh(refreshToken, userId,
           sessionId, userExists, sessionExists)));
   }
 
-  private CompletableFuture<Map<String, Object>> refreshAuthorization(
+  private CompletableFuture<ApiResponse> refresh(
     String refreshToken, UUID userId, UUID sessionId, boolean userExists,
     boolean sessionExists
   ) {
     if (!userExists || !sessionExists) {
-      return CompletableFuture.completedFuture(Map.of("success", false));
+      return ApiResponse.error(1001).future();
     }
     return userRepository().findById(userId)
       .thenCompose(user -> sessionRepository.findById(sessionId)
-        .thenApply(session -> refreshAuthorization(refreshToken,
+        .thenApply(session -> refresh(refreshToken,
           user.get(), session.get())));
   }
 
-  private Map<String, Object> refreshAuthorization(
+  private ApiResponse refresh(
     String refreshToken, User user, UserSession session
   ) {
     if (session.status().isClosed() ||
       !session.lastRefreshToken().equals(refreshToken)
     ) {
-      return Map.of("success", false);
+      return ApiResponse.error(1002);
     }
     var newAuthenticationToken = tokenFactory.generateAuthenticationToken(
       user.id(), session.id());
@@ -85,13 +86,14 @@ public final class SessionAuthenticationController extends AppRestController {
       session.id());
     session.updateRefreshToken(newRefreshToken);
     sessionRepository.save(session);
-    return Map.of("success", true, "authentication_token", newAuthenticationToken,
-      "refresh_token", newRefreshToken);
+    return ApiResponse.success(Map.of(
+      "authentication_token", newAuthenticationToken,
+      "refresh_token", newRefreshToken));
   }
 
   @RequestMapping(path = "/logout/", method = RequestMethod.GET)
   public CompletableFuture<Void> logout(
-    HttpServletRequest request, HttpServletResponse response
+    HttpServletRequest request
   ) {
     var sessionId = findSessionId(request);
     return findUser(request)
@@ -107,11 +109,11 @@ public final class SessionAuthenticationController extends AppRestController {
   }
 
   @RequestMapping(path = "/authorized/", method = RequestMethod.GET)
-  public CompletableFuture<Map<String, Object>> isAuthorized(
-    HttpServletRequest request, HttpServletResponse response
+  public CompletableFuture<ApiResponse> isAuthorized(
+    HttpServletRequest request
   ) {
     return findUser(request)
-      .thenApply(user -> Map.of("authorized", user != null));
+      .thenApply(user -> ApiResponse.success(Map.of("authorized", user != null)));
   }
 
   private Claims verifyToken(Key key, String token) {

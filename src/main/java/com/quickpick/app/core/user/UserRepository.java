@@ -10,9 +10,4 @@ import java.util.concurrent.CompletableFuture;
 
 @Repository
 public interface UserRepository extends DatabaseRepository<User, UUID> {
-  @Async
-  CompletableFuture<Optional<User>> findByEmail(String email);
-
-  @Async
-  CompletableFuture<Boolean> existsByEmail(String email);
 }

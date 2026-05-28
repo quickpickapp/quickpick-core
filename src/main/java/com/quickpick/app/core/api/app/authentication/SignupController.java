@@ -1,0 +1,167 @@
+package com.quickpick.app.core.api.app.authentication;
+
+import com.google.common.collect.Lists;
+import com.maxmind.geoip2.DatabaseReader;
+import com.quickpick.app.core.api.request.ApiRequestBody;
+import com.quickpick.app.core.api.response.ApiResponse;
+import com.quickpick.app.core.api.security.app.AppRestController;
+import com.quickpick.app.core.iterator.AsyncIterator;
+import com.quickpick.app.core.sms.SmsVerification;
+import com.quickpick.app.core.user.User;
+import com.quickpick.app.core.user.UserRepository;
+import com.quickpick.app.core.user.device.UserDevice;
+import com.quickpick.app.core.user.device.UserDeviceRepository;
+import com.quickpick.app.core.user.session.UserAgent;
+import com.quickpick.app.core.user.session.UserSession;
+import com.quickpick.app.core.user.session.UserSessionRepository;
+import com.quickpick.app.core.user.session.UserSessionStatus;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.net.InetAddress;
+import java.security.Key;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+@RestController
+public class SignupController extends AppRestController {
+  private final UserDeviceRepository userDeviceRepository;
+  private final UserSessionRepository userSessionRepository;
+  private final SmsVerification smsVerification;
+  private final TokenFactory tokenFactory;
+  private final DatabaseReader geoDatabaseReader;
+
+  private SignupController(
+    @Qualifier("authenticationKey") Key authenticationKey,
+    UserRepository userRepository,
+    UserDeviceRepository userDeviceRepository,
+    UserSessionRepository userSessionRepository,
+    SmsVerification smsVerification, TokenFactory tokenFactory,
+    DatabaseReader geoDatabaseReader
+  ) {
+    super(authenticationKey, userRepository);
+    this.userDeviceRepository = userDeviceRepository;
+    this.userSessionRepository = userSessionRepository;
+    this.smsVerification = smsVerification;
+    this.tokenFactory = tokenFactory;
+    this.geoDatabaseReader = geoDatabaseReader;
+  }
+
+  @RequestMapping(path = "/signup/request/code/", method = RequestMethod.POST)
+  public CompletableFuture<ApiResponse> sendSignupCode(
+    @RequestBody String payload, HttpServletResponse response
+  ) {
+    var body = ApiRequestBody.of(payload, response);
+    var phoneNumber = body.getString("phone_number");
+    return smsVerification.sendVerificationCode(phoneNumber)
+      .thenApply(verification -> verification.getStatus().equals("pending") ?
+        ApiResponse.success() : ApiResponse.error(1000));
+  }
+
+  @RequestMapping(path = "/signup/verify/code/", method = RequestMethod.POST)
+  public CompletableFuture<ApiResponse> verifySignupCode(
+    @RequestBody String payload, HttpServletResponse response
+  ) {
+    var body = ApiRequestBody.of(payload, response);
+    var phoneNumber = body.getString("phone_number");
+    var code = body.getString("code");
+    return smsVerification.verifyCode(phoneNumber, code)
+      .thenApply(approved -> );
+  }
+
+  @RequestMapping(path = "/signup/complete/", method = RequestMethod.POST)
+  public CompletableFuture<ApiResponse> completeSignup(
+    HttpServletRequest request, @RequestBody String payload,
+    HttpServletResponse response
+  ) {
+    var body = ApiRequestBody.of(payload, response);
+    return signupUser(body)
+      .exceptionally(_ -> null)
+      .thenCompose(user -> user == null ?
+        ApiResponse.error(1000).future() :
+        completeSignup(request, user));
+  }
+
+  private CompletableFuture<User> signupUser(ApiRequestBody body) {
+    return userRepository().generateAvailableId(UUID::randomUUID)
+      .thenCompose(userId -> signupUser(userId, body));
+  }
+
+  private CompletableFuture<User> signupUser(
+    UUID userId, ApiRequestBody body
+  ) {
+    var legalAccepted = body.getBoolean("legalAccepted");
+    if (!legalAccepted) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return userDeviceRepository.generateAvailableId(UUID::randomUUID)
+      .thenCompose(deviceId -> signupUser(userId, body.getSanitizedString("name"),
+        body.getString("public_key"), legalAccepted, deviceId,
+        body.getString("device_id"), body.getString("operating_system"),
+        body.getString("operating_system_version"),
+        body.getString("device_brand"), body.getString("device_model"),
+        body.getString("device_name")));
+  }
+
+  private CompletableFuture<User> signupUser(
+    UUID id, String name, String publicKey, boolean compliant,
+    UUID deviceId, String publicDeviceId, String operatingSystem,
+    String operatingSystemVersion, String deviceBrand, String deviceModel,
+    String deviceName
+  ) {
+    var processes = Lists.<CompletableFuture<Void>>newArrayList();
+    var user = User.create(id, name, compliant, publicKey,
+      System.currentTimeMillis());
+    var device = UserDevice.create(deviceId, id, publicDeviceId, operatingSystem,
+      operatingSystemVersion, deviceBrand, deviceModel, deviceName);
+    processes.add(userRepository().save(user).thenApply(_ -> null));
+    processes.add(userDeviceRepository.save(device).thenApply(_ -> null));
+    return AsyncIterator.execute(processes, process -> process)
+      .thenApply(_ -> user);
+  }
+
+  private CompletableFuture<ApiResponse> completeSignup(
+    HttpServletRequest request, User user
+  ) {
+    return userSessionRepository.generateAvailableId(UUID::randomUUID)
+      .thenComposeAsync(sessionId -> completeSignup(request, user, sessionId));
+  }
+
+  private CompletableFuture<ApiResponse> completeSignup(
+    HttpServletRequest request, User user, UUID sessionId
+  ) {
+    var authenticationToken = tokenFactory.generateAuthenticationToken(
+      user.id(), sessionId);
+    var refreshToken = tokenFactory.generateRefreshToken(user.id(), sessionId);
+    return storeSession(request, user.id(), sessionId, refreshToken)
+      .thenApply(_ -> ApiResponse.success(Map.of("user", user.id(),
+        "authentication_token", authenticationToken,
+        "refresh_token", refreshToken)));
+  }
+
+  private CompletableFuture<UserSession> storeSession(
+    HttpServletRequest request, UUID userId, UUID sessionId, String refreshToken
+  ) {
+    var country = "";
+    var city = "";
+    var platform = "";
+    var ipAddress = request.getHeader("X-Real-IP");
+    try {
+      var location = geoDatabaseReader.city(InetAddress.getByName(ipAddress));
+      country = location.country().name();
+      city = location.city().name();
+      platform = UserAgent.create(request.getHeader("User-Agent")).findPlatform();
+    } catch (Exception ignored) {
+    }
+    var session = UserSession.create(sessionId, userId,
+      UserSessionStatus.ACTIVE, platform, ipAddress, country, city,
+      System.currentTimeMillis(), refreshToken, System.currentTimeMillis());
+    return userSessionRepository.save(session);
+  }
+}
