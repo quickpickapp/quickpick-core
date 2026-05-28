@@ -61,7 +61,8 @@ public class SignupController extends AppRestController {
     var body = ApiRequestBody.of(payload, response);
     var phoneNumber = body.getString("phone_number");
     return smsVerification.sendVerificationCode(phoneNumber)
-      .thenApply(verification -> verification.getStatus().equals("pending") ?
+      .exceptionally(_ -> null)
+      .thenApply(verification -> verification != null ?
         ApiResponse.success() : ApiResponse.error(1000));
   }
 
