@@ -29,14 +29,14 @@ dependencies {
   testImplementation("org.projectlombok:lombok:1.18.46")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.46")
 
-  implementation("org.json:json:20251224")
+  implementation("org.json:json:20260522")
   implementation("commons-io:commons-io:2.22.0")
 
-  implementation("org.apache.commons:commons-configuration2:2.15.0")
+  implementation("org.apache.commons:commons-configuration2:2.15.1")
   implementation("commons-beanutils:commons-beanutils:1.11.0")
 
   implementation("org.postgresql:postgresql:42.7.11")
-  implementation("org.hibernate.orm:hibernate-core:7.3.5.Final")
+  implementation("org.hibernate.orm:hibernate-core:7.4.0.Final")
   implementation("org.reflections:reflections:0.10.2")
 
   implementation("org.springframework.boot:spring-boot-starter-web:4.0.6")
