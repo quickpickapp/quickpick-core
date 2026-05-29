@@ -2,13 +2,10 @@ package com.quickpick.app.core.api.app.authentication;
 
 import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.response.ApiResponse;
-import com.quickpick.app.core.api.security.app.AppRestController;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
 import com.quickpick.app.core.user.session.UserSession;
 import com.quickpick.app.core.user.session.UserSessionRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,20 +21,16 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class SessionController extends AppRestController {
-  private final Key refreshKey;
-  private final TokenFactory tokenFactory;
+public final class SessionController extends AuthenticationController {
   private final UserSessionRepository sessionRepository;
 
   private SessionController(
+    @Qualifier("verificationKey") Key verificationKey,
     @Qualifier("authenticationKey") Key authenticationKey,
     @Qualifier("refreshKey") Key refreshKey,
-    UserRepository userRepository, TokenFactory tokenFactory,
-    UserSessionRepository sessionRepository
+    UserRepository userRepository, UserSessionRepository sessionRepository
   ) {
-    super(authenticationKey, userRepository);
-    this.refreshKey = refreshKey;
-    this.tokenFactory = tokenFactory;
+    super(verificationKey, authenticationKey, refreshKey, userRepository);
     this.sessionRepository = sessionRepository;
   }
 
@@ -47,7 +40,7 @@ public final class SessionController extends AppRestController {
   ) {
     var body = ApiRequestBody.of(payload, response);
     var refreshToken = body.getString("refresh_token");
-    var result = verifyToken(refreshKey, refreshToken);
+    var result = verifyToken(refreshKey(), refreshToken);
     if (result == null) {
       return ApiResponse.error(1000).future();
     }
@@ -80,10 +73,8 @@ public final class SessionController extends AppRestController {
     ) {
       return ApiResponse.error(1002);
     }
-    var newAuthenticationToken = tokenFactory.generateAuthenticationToken(
-      user.id(), session.id());
-    var newRefreshToken = tokenFactory.generateRefreshToken(user.id(),
-      session.id());
+    var newAuthenticationToken = generateAuthenticationToken(user.id(), session.id());
+    var newRefreshToken = generateRefreshToken(user.id(), session.id());
     session.updateRefreshToken(newRefreshToken);
     sessionRepository.save(session);
     return ApiResponse.success(Map.of(
@@ -114,17 +105,5 @@ public final class SessionController extends AppRestController {
   ) {
     return findUser(request)
       .thenApply(user -> ApiResponse.success(Map.of("authorized", user != null)));
-  }
-
-  private Claims verifyToken(Key key, String token) {
-    try {
-      return Jwts.parser()
-        .setSigningKey(key)
-        .build()
-        .parseClaimsJws(token)
-        .getPayload();
-    } catch (Exception exception) {
-      return null;
-    }
   }
 }
