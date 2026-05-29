@@ -30,9 +30,13 @@ public class AppRestController {
   protected CompletableFuture<User> findUser(
     HttpServletRequest request
   ) {
-    var apiKey = findApiKey(request);
-    var userId = findUserId(apiKey);
-    return userRepository.findById(userId).thenApply(user -> user.orElse(null));
+    try {
+      var apiKey = findApiKey(request);
+      var userId = findUserId(apiKey);
+      return userRepository.findById(userId).thenApply(user -> user.orElse(null));
+    } catch (Exception exception) {
+      return CompletableFuture.completedFuture(null);
+    }
   }
 
   /**
