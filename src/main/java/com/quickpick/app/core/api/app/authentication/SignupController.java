@@ -5,6 +5,7 @@ import com.maxmind.geoip2.DatabaseReader;
 import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.response.ApiResponse;
 import com.quickpick.app.core.iterator.AsyncIterator;
+import com.quickpick.app.core.sms.SmsRateLimit;
 import com.quickpick.app.core.sms.SmsVerification;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
@@ -34,6 +35,7 @@ public class SignupController extends AuthenticationController {
   private final UserDeviceRepository userDeviceRepository;
   private final UserSessionRepository userSessionRepository;
   private final SmsVerification smsVerification;
+  private final SmsRateLimit smsRateLimit;
   private final DatabaseReader geoDatabaseReader;
 
   private SignupController(
@@ -42,12 +44,14 @@ public class SignupController extends AuthenticationController {
     @Qualifier("refreshKey") Key refreshKey,
     UserRepository userRepository, UserDeviceRepository userDeviceRepository,
     UserSessionRepository userSessionRepository,
-    SmsVerification smsVerification, DatabaseReader geoDatabaseReader
+    SmsVerification smsVerification, SmsRateLimit smsRateLimit,
+    DatabaseReader geoDatabaseReader
   ) {
     super(verificationKey, authenticationKey, refreshKey, userRepository);
     this.userDeviceRepository = userDeviceRepository;
     this.userSessionRepository = userSessionRepository;
     this.smsVerification = smsVerification;
+    this.smsRateLimit = smsRateLimit;
     this.geoDatabaseReader = geoDatabaseReader;
   }
 
@@ -57,12 +61,15 @@ public class SignupController extends AuthenticationController {
   ) {
     var body = ApiRequestBody.of(payload, response);
     var phoneNumber = body.getString("phone_number");
+    if (!smsRateLimit.isAllowed(phoneNumber)) {
+      return ApiResponse.error(1000).future();
+    }
     return smsVerification.sendVerificationCode(phoneNumber)
       .exceptionally(_ -> null)
       .thenApply(verification -> verification != null &&
         "pending".equals(verification.getStatus().toString()))
       .thenApply(success -> success ?
-        ApiResponse.success() : ApiResponse.error(1000));
+        ApiResponse.success() : ApiResponse.error(1001));
   }
 
   @RequestMapping(path = "/signup/verify/code/", method = RequestMethod.POST)
