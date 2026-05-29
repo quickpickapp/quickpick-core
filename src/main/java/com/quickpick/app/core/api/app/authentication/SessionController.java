@@ -2,6 +2,7 @@ package com.quickpick.app.core.api.app.authentication;
 
 import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.response.ApiResponse;
+import com.quickpick.app.core.api.security.app.AppEndpoint;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
 import com.quickpick.app.core.user.session.UserSession;
@@ -88,6 +89,7 @@ public final class SessionController extends AuthenticationController {
   ) {
     var sessionId = findSessionId(request);
     return findUser(request)
+      .exceptionally(_ -> null)
       .thenCompose(user -> user == null ?
         CompletableFuture.completedFuture(null) :
         sessionRepository.findById(sessionId).thenApply(Optional::get)
@@ -99,11 +101,13 @@ public final class SessionController extends AuthenticationController {
     return sessionRepository.save(session).thenApply(_ -> null);
   }
 
+  @AppEndpoint
   @RequestMapping(path = "/authorized/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> isAuthorized(
     HttpServletRequest request
   ) {
     return findUser(request)
+      .exceptionally(_ -> null)
       .thenApply(user -> ApiResponse.success(Map.of("authorized", user != null)));
   }
 }
