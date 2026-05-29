@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.maxmind.geoip2.DatabaseReader;
 import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.response.ApiResponse;
-import com.quickpick.app.core.api.security.app.AppRestController;
 import com.quickpick.app.core.iterator.AsyncIterator;
 import com.quickpick.app.core.sms.SmsVerification;
 import com.quickpick.app.core.user.User;
@@ -31,26 +30,24 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public class SignupController extends AppRestController {
+public class SignupController extends AuthenticationController {
   private final UserDeviceRepository userDeviceRepository;
   private final UserSessionRepository userSessionRepository;
   private final SmsVerification smsVerification;
-  private final TokenFactory tokenFactory;
   private final DatabaseReader geoDatabaseReader;
 
   private SignupController(
+    @Qualifier("verificationKey") Key verificationKey,
     @Qualifier("authenticationKey") Key authenticationKey,
-    UserRepository userRepository,
-    UserDeviceRepository userDeviceRepository,
+    @Qualifier("refreshKey") Key refreshKey,
+    UserRepository userRepository, UserDeviceRepository userDeviceRepository,
     UserSessionRepository userSessionRepository,
-    SmsVerification smsVerification, TokenFactory tokenFactory,
-    DatabaseReader geoDatabaseReader
+    SmsVerification smsVerification, DatabaseReader geoDatabaseReader
   ) {
-    super(authenticationKey, userRepository);
+    super(verificationKey, authenticationKey, refreshKey, userRepository);
     this.userDeviceRepository = userDeviceRepository;
     this.userSessionRepository = userSessionRepository;
     this.smsVerification = smsVerification;
-    this.tokenFactory = tokenFactory;
     this.geoDatabaseReader = geoDatabaseReader;
   }
 
@@ -62,7 +59,9 @@ public class SignupController extends AppRestController {
     var phoneNumber = body.getString("phone_number");
     return smsVerification.sendVerificationCode(phoneNumber)
       .exceptionally(_ -> null)
-      .thenApply(verification -> verification != null ?
+      .thenApply(verification -> verification != null &&
+        "pending".equals(verification.getStatus().toString()))
+      .thenApply(success -> success ?
         ApiResponse.success() : ApiResponse.error(1000));
   }
 
@@ -85,14 +84,16 @@ public class SignupController extends AppRestController {
       return ApiResponse.error(1000).future();
     }
     return userRepository().findByPhoneNumber(phoneNumber)
-      .thenCompose(user -> verifySignupCode(request, user));
+      .thenCompose(user -> verifySignupCode(request, phoneNumber, user));
   }
 
   private CompletableFuture<ApiResponse> verifySignupCode(
-    HttpServletRequest request, Optional<User> user
+    HttpServletRequest request, String phoneNumber, Optional<User> user
   ) {
     if (user.isEmpty()) {
-      return ApiResponse.success(Map.of("new_user", true)).future();
+      var verificationToken = generateVerificationToken(phoneNumber);
+      return ApiResponse.success(Map.of("new_user", true,
+        "verification_token", verificationToken)).future();
     }
     return completeSignup(request, user.get()).thenApply(response ->
       response.expand(Map.of("new_user", false)));
@@ -104,28 +105,36 @@ public class SignupController extends AppRestController {
     HttpServletResponse response
   ) {
     var body = ApiRequestBody.of(payload, response);
-    return signupUser(body)
-      .exceptionally(_ -> null)
+    var verificationToken = body.getString("verification_token");
+    var result = verifyToken(verificationKey(), verificationToken);
+    if (result == null) {
+      return ApiResponse.error(1000).future();
+    }
+    var phoneNumber = result.get("phone_number", String.class);
+    return signupUser(phoneNumber, body)
+      //.exceptionally(_ -> null)
       .thenCompose(user -> user == null ?
-        ApiResponse.error(1000).future() :
+        ApiResponse.error(1001).future() :
         completeSignup(request, user));
   }
 
-  private CompletableFuture<User> signupUser(ApiRequestBody body) {
+  private CompletableFuture<User> signupUser(
+    String phoneNumber, ApiRequestBody body
+  ) {
     return userRepository().generateAvailableId(UUID::randomUUID)
-      .thenCompose(userId -> signupUser(userId, body));
+      .thenCompose(userId -> signupUser(phoneNumber, userId, body));
   }
 
   private CompletableFuture<User> signupUser(
-    UUID userId, ApiRequestBody body
+    String phoneNumber, UUID userId, ApiRequestBody body
   ) {
-    var legalAccepted = body.getBoolean("legalAccepted");
+    var legalAccepted = body.getBoolean("legal_accepted");
     if (!legalAccepted) {
       return CompletableFuture.completedFuture(null);
     }
     return userDeviceRepository.generateAvailableId(UUID::randomUUID)
-      .thenCompose(deviceId -> signupUser(userId, body.getSanitizedString("name"),
-        body.getString("phone_number"), body.getString("public_key"), legalAccepted,
+      .thenCompose(deviceId -> signupUser(userId, phoneNumber,
+        body.getSanitizedString("name"), body.getString("public_key"), legalAccepted,
         deviceId, body.getString("device_id"), body.getString("operating_system"),
         body.getString("operating_system_version"),
         body.getString("device_brand"), body.getString("device_model"),
@@ -159,9 +168,8 @@ public class SignupController extends AppRestController {
   private CompletableFuture<ApiResponse> completeSignup(
     HttpServletRequest request, User user, UUID sessionId
   ) {
-    var authenticationToken = tokenFactory.generateAuthenticationToken(
-      user.id(), sessionId);
-    var refreshToken = tokenFactory.generateRefreshToken(user.id(), sessionId);
+    var authenticationToken = generateAuthenticationToken(user.id(), sessionId);
+    var refreshToken = generateRefreshToken(user.id(), sessionId);
     return storeSession(request, user.id(), sessionId, refreshToken)
       .thenApply(_ -> ApiResponse.success(Map.of("user", user.id(),
         "authentication_token", authenticationToken,
