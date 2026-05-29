@@ -16,7 +16,7 @@ public class ApiResponse extends ResponseEntity<Map<String, Object>> {
     var body = Maps.<String, Object>newHashMap();
     body.put("success", true);
     body.putAll(data);
-    return new ApiResponse(data, HttpStatus.OK);
+    return new ApiResponse(body, HttpStatus.OK);
   }
 
   public static ApiResponse error(int code) {
