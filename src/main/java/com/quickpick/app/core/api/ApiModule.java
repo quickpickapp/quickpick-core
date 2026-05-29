@@ -19,6 +19,12 @@ public class ApiModule {
     return configuration;
   }
 
+  @Bean("verificationKey")
+  Key verificationKey(@Qualifier("apiConfiguration") ApiConfiguration configuration) {
+    return new SecretKeySpec(configuration.verificationKey()
+      .getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
+  }
+
   @Bean("authenticationKey")
   Key authenticationKey(@Qualifier("apiConfiguration") ApiConfiguration configuration) {
     return new SecretKeySpec(configuration.authenticationKey()

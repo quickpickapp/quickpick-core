@@ -13,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor(staticName = "create")
 public final class ApiConfiguration implements Configuration {
   private int port;
+  private String verificationKey;
   private String authenticationKey;
   private String refreshKey;
   private List<String> allowedOrigins;
@@ -20,6 +21,7 @@ public final class ApiConfiguration implements Configuration {
   @Override
   public void load(INIConfiguration file) {
     port = file.getInt("api.port");
+    verificationKey = file.getString("api.verification_key");
     authenticationKey = file.getString("api.authentication_key");
     refreshKey = file.getString("api.refresh_key");
     allowedOrigins = file.getList(String.class, "api.allowed_origins");
