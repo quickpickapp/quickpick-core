@@ -11,6 +11,6 @@ import java.util.concurrent.CompletableFuture;
 @Repository
 public interface UserSessionRepository extends DatabaseRepository<UserSession, UUID> {
   @Async
-  CompletableFuture<List<UserSession>> findByMemberIdAndStatus(
-    UUID memberId, UserSessionStatus status);
+  CompletableFuture<List<UserSession>> findByUserIdAndStatus(
+    UUID userId, UserSessionStatus status);
 }

@@ -10,7 +10,7 @@ import lombok.experimental.Accessors;
 import java.util.UUID;
 
 @Entity
-@Table(name = "member_session")
+@Table(name = "user_session")
 @Getter
 @Accessors(fluent = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,8 +19,8 @@ public final class UserSession {
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
-  @Column(name = "member", nullable = false)
-  private UUID memberId;
+  @Column(name = "user_id", nullable = false)
+  private UUID userId;
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   private UserSessionStatus status;
