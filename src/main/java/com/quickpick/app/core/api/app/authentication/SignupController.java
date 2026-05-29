@@ -112,7 +112,7 @@ public class SignupController extends AuthenticationController {
     }
     var phoneNumber = result.get("phone_number", String.class);
     return signupUser(phoneNumber, body)
-      //.exceptionally(_ -> null)
+      .exceptionally(_ -> null)
       .thenCompose(user -> user == null ?
         ApiResponse.error(1001).future() :
         completeSignup(request, user));
