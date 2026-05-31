@@ -18,6 +18,6 @@ import java.util.UUID;
 public class PickRecipient {
   @Column(name = "recipient_id", nullable = false)
   private UUID recipientId;
-  @Column(name = "decryption_key", nullable = false)
+  @Column(name = "decryption_key", nullable = false, columnDefinition = "TEXT")
   private String decryptionKey;
 }

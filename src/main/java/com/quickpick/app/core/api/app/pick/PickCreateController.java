@@ -59,12 +59,14 @@ public final class PickCreateController extends AppRestController {
     if (duration < MINIMUM_PICK_DURATION) {
       return ApiResponse.error(1001, "Falling below the minimum duration").future();
     }
-    var content = body.getString("content");
+    var nonce = body.getString("nonce");
+    var ciphertext = body.getString("ciphertext");
+    var tag = body.getString("tag");
     var recipients = parseRecipients(body);
     return findUser(request)
       .thenCompose(user -> friendshipRepository.findAllByUserId(user.id())
         .thenCompose(friendships -> createPick(user, friendships, type,
-          duration, content, recipients)));
+          duration, nonce, ciphertext, tag, recipients)));
   }
 
   private List<PickRecipient> parseRecipients(ApiRequestBody body) {
@@ -76,22 +78,23 @@ public final class PickCreateController extends AppRestController {
 
   private CompletableFuture<ApiResponse> createPick(
     User user, List<Friendship> friendships, PickType type, long duration,
-    String content, List<PickRecipient> recipients
+    String nonce, String ciphertext, String tag, List<PickRecipient> recipients
   ) {
     if (!checkRecipients(user, friendships, recipients)) {
       return ApiResponse.error(1002, "Unknown recipient").future();
     }
     return pickRepository.generateAvailableId(UUID::randomUUID)
-      .thenCompose(id -> createPick(user, id, type, duration, content, recipients));
+      .thenCompose(id -> createPick(user, id, type, duration, nonce, ciphertext,
+        tag, recipients));
   }
 
   private CompletableFuture<ApiResponse> createPick(
     User user, UUID pickId, PickType type, long duration,
-    String content, List<PickRecipient> recipients
+    String nonce, String ciphertext, String tag, List<PickRecipient> recipients
   ) {
     var currentTime = System.currentTimeMillis();
-    var pick = Pick.create(pickId, user.id(), type, content, recipients,
-      currentTime, currentTime + duration);
+    var pick = Pick.create(pickId, user.id(), type, nonce, ciphertext, tag,
+      recipients, currentTime, currentTime + duration);
     return pickRepository.save(pick).thenApply(_ ->
       ApiResponse.success(Map.of("pick_id", pickId)));
   }

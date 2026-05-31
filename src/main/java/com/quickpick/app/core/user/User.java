@@ -28,7 +28,7 @@ public final class User {
   private String name;
   @Column(name = "compliant", nullable = false)
   private boolean compliant;
-  @Column(name = "public_key", nullable = false)
+  @Column(name = "public_key", nullable = false, columnDefinition = "TEXT")
   private String publicKey;
   @Column(name = "joined_at", nullable = false, updatable = false)
   private long joinedAt;

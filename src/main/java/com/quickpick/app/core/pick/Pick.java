@@ -27,8 +27,12 @@ public class Pick {
   @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false)
   private PickType type;
-  @Column(name = "content", nullable = false)
-  private String content;
+  @Column(name = "nonce", nullable = false, columnDefinition = "TEXT")
+  private String nonce;
+  @Column(name = "ciphertext", nullable = false, columnDefinition = "TEXT")
+  private String ciphertext;
+  @Column(name = "tag", nullable = false, columnDefinition = "TEXT")
+  private String tag;
   @ElementCollection
   @CollectionTable(
     name = "pick_recipients",
@@ -45,7 +49,9 @@ public class Pick {
     information.put("id", id);
     information.put("creator_id", creatorId);
     information.put("type", type);
-    information.put("content", content);
+    information.put("nonce", nonce);
+    information.put("ciphertext", ciphertext);
+    information.put("tag", tag);
     var decryptionKey = recipients.stream()
       .filter(recipient -> recipient.recipientId().equals(recipientId))
       .findFirst().get().decryptionKey();
