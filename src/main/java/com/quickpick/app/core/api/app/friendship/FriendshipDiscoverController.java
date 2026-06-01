@@ -5,6 +5,7 @@ import com.quickpick.app.core.api.response.ApiResponse;
 import com.quickpick.app.core.api.security.app.AppEndpoint;
 import com.quickpick.app.core.api.security.app.AppRestController;
 import com.quickpick.app.core.friendship.FriendshipRepository;
+import com.quickpick.app.core.friendship.invitation.InvitationRepository;
 import com.quickpick.app.core.iterator.AsyncIterator;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
@@ -24,13 +25,16 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public final class FriendshipDiscoverController extends AppRestController {
   private final FriendshipRepository friendshipRepository;
+  private final InvitationRepository invitationRepository;
 
   private FriendshipDiscoverController(
     @Qualifier("authenticationKey") Key authenticationKey,
-    UserRepository userRepository, FriendshipRepository friendshipRepository
+    UserRepository userRepository, FriendshipRepository friendshipRepository,
+    InvitationRepository invitationRepository
   ) {
     super(authenticationKey, userRepository);
     this.friendshipRepository = friendshipRepository;
+    this.invitationRepository = invitationRepository;
   }
 
   @AppEndpoint
@@ -52,6 +56,9 @@ public final class FriendshipDiscoverController extends AppRestController {
   private CompletableFuture<Map<String, Object>> checkContact(
     User explorer, String contact
   ) {
+    if (contact.equals(explorer.phoneNumber())) {
+      return CompletableFuture.completedFuture(null);
+    }
     return userRepository().findByPhoneNumber(contact)
       .thenCompose(contactUser -> checkContact(explorer, contactUser.orElse(null)));
   }
@@ -63,13 +70,16 @@ public final class FriendshipDiscoverController extends AppRestController {
       return CompletableFuture.completedFuture(null);
     }
     return friendshipRepository.findByPair(explorer.id(), suggestion.id())
-      .thenApply(friendship -> checkContact(suggestion, friendship.isPresent()));
+      .thenCompose(friendship -> invitationRepository
+        .findByInviterIdAndInviteeId(explorer.id(), suggestion.id())
+        .thenApply(invitation -> checkContact(suggestion,
+          friendship.isPresent(), invitation.isPresent())));
   }
 
   private Map<String, Object> checkContact(
-    User suggestion, boolean friendshipExists
+    User suggestion, boolean friendshipExists, boolean invitationExists
   ) {
-    if (friendshipExists) {
+    if (friendshipExists || invitationExists) {
       return null;
     }
     return Map.of("id", suggestion.id(), "name", suggestion.name());
