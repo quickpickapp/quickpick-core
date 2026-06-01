@@ -1,4 +1,4 @@
-package com.quickpick.app.core.api.app.friendship;
+package com.quickpick.app.core.api.app.friendship.invitation;
 
 import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.response.ApiResponse;
@@ -23,11 +23,11 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class FriendshipAcceptController extends AppRestController {
+public final class InvitationAcceptController extends AppRestController {
   private final FriendshipRepository friendshipRepository;
   private final InvitationRepository invitationRepository;
 
-  private FriendshipAcceptController(
+  private InvitationAcceptController(
     @Qualifier("authenticationKey") Key authenticationKey,
     UserRepository userRepository, FriendshipRepository friendshipRepository,
     InvitationRepository invitationRepository
@@ -38,7 +38,7 @@ public final class FriendshipAcceptController extends AppRestController {
   }
 
   @AppEndpoint
-  @RequestMapping(path = "/friendship/accept/", method = RequestMethod.POST)
+  @RequestMapping(path = "/friendship/invitation/accept/", method = RequestMethod.POST)
   public CompletableFuture<ApiResponse> acceptFriendshipInvitation(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
@@ -50,15 +50,19 @@ public final class FriendshipAcceptController extends AppRestController {
         .thenCompose(entry -> entry
           .map(invitation -> acceptFriendshipInvitation(user, invitation)
             .thenApply(_ -> ApiResponse.success()))
-          .orElse(ApiResponse.error(1000, "Invitation not found").future())));
+          .orElse(ApiResponse.error(1000).future())));
   }
 
   private CompletableFuture<ApiResponse> acceptFriendshipInvitation(
     User user, Invitation invitation
   ) {
+    if (!invitation.inviteeId().equals(user.id())) {
+      return ApiResponse.error(1001).future();
+    }
+    invitationRepository.delete(invitation);
     return friendshipRepository.generateAvailableId(UUID::randomUUID)
       .thenCompose(id -> friendshipRepository.save(Friendship.create(id,
-        invitation.userId(), user.id(), System.currentTimeMillis())))
+        invitation.inviterId(), user.id(), System.currentTimeMillis())))
       .thenApply(_ -> ApiResponse.success());
   }
 }

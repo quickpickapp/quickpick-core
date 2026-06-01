@@ -40,8 +40,8 @@ public final class FriendshipListController extends AppRestController {
       .thenCompose(user -> friendshipRepository.findAllByUserId(user.id())
         .thenCompose(friendships -> AsyncIterator.execute(friendships,
           friendship -> findFriend(user, friendship)))
-        .thenApply(friendships -> ApiResponse.success(Map.of("friendships",
-          friendships.stream().map(this::assembleFriendshipInformation)))));
+        .thenApply(friends -> ApiResponse.success(Map.of("friendships",
+          friends.stream().map(this::assembleFriendshipInformation).toList()))));
   }
 
   private Map<String, Object> assembleFriendshipInformation(User friend) {

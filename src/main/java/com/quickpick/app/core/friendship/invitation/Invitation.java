@@ -22,8 +22,10 @@ public class Invitation {
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
-  @Column(name = "user_id", nullable = false)
-  private UUID userId;
+  @Column(name = "inviter_id", nullable = false, updatable = false)
+  private UUID inviterId;
+  @Column(name = "invitee_id", nullable = false, updatable = false)
+  private UUID inviteeId;
   @Column(name = "created_at", nullable = false, updatable = false)
   private long createdAt;
   @Column(name = "expires_at", nullable = false)
