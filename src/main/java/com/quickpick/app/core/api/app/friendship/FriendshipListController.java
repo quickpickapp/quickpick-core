@@ -45,7 +45,8 @@ public final class FriendshipListController extends AppRestController {
   }
 
   private Map<String, Object> assembleFriendshipInformation(User friend) {
-    return Map.of("name", friend.name(), "public_key", friend.publicKey());
+    return Map.of("id", friend.id(),  "name", friend.name(),
+      "public_key", friend.publicKey());
   }
 
   private CompletableFuture<User> findFriend(User user, Friendship friendship) {
