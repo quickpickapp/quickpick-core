@@ -49,7 +49,7 @@ dependencies {
 
   implementation("io.jsonwebtoken:jjwt:0.13.0")
 
-  implementation("com.nimbusds:nimbus-jose-jwt:10.9")
+  implementation("com.nimbusds:nimbus-jose-jwt:10.9.1")
 
   implementation("com.maxmind.geoip2:geoip2:5.1.0")
 
