@@ -179,6 +179,7 @@ public class SignupController extends AuthenticationController {
     var refreshToken = generateRefreshToken(user.id(), sessionId);
     return storeSession(request, user.id(), sessionId, refreshToken)
       .thenApply(_ -> ApiResponse.success(Map.of("user", user.id(),
+        "phone_number", user.phoneNumber(), "name", user.name(),
         "authentication_token", authenticationToken,
         "refresh_token", refreshToken)));
   }
