@@ -30,6 +30,8 @@ public final class User {
   private boolean compliant;
   @Column(name = "public_key", nullable = false, columnDefinition = "TEXT")
   private String publicKey;
+  @Column(name = "firebase_token", nullable = false, columnDefinition = "TEXT")
+  private String firebaseToken;
   @Column(name = "joined_at", nullable = false, updatable = false)
   private long joinedAt;
 

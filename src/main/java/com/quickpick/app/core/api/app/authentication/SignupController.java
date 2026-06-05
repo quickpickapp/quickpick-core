@@ -141,22 +141,24 @@ public class SignupController extends AuthenticationController {
     }
     return userDeviceRepository.generateAvailableId(UUID::randomUUID)
       .thenCompose(deviceId -> signupUser(userId, phoneNumber,
-        body.getSanitizedString("name"), body.getString("public_key"), legalAccepted,
-        deviceId, body.getString("device_id"), body.getString("operating_system"),
+        body.getSanitizedString("name"), body.getString("public_key"),
+        body.getString("firebase_token"), legalAccepted, deviceId,
+        body.getString("device_id"), body.getString("operating_system"),
         body.getString("operating_system_version"),
         body.getString("device_brand"), body.getString("device_model"),
         body.getString("device_name")));
   }
 
   private CompletableFuture<User> signupUser(
-    UUID id, String phoneNumber, String name, String publicKey, boolean compliant,
+    UUID id, String phoneNumber, String name, String publicKey,
+    String firebaseToken, boolean compliant,
     UUID deviceId, String publicDeviceId, String operatingSystem,
     String operatingSystemVersion, String deviceBrand, String deviceModel,
     String deviceName
   ) {
     var processes = Lists.<CompletableFuture<Void>>newArrayList();
     var user = User.create(id, phoneNumber, name, compliant, publicKey,
-      System.currentTimeMillis());
+      firebaseToken, System.currentTimeMillis());
     var device = UserDevice.create(deviceId, id, publicDeviceId, operatingSystem,
       operatingSystemVersion, deviceBrand, deviceModel, deviceName);
     processes.add(userRepository().save(user).thenApply(_ -> null));
