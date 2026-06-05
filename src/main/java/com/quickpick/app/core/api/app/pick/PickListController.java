@@ -1,9 +1,13 @@
 package com.quickpick.app.core.api.app.pick;
 
+import com.google.common.collect.Maps;
 import com.quickpick.app.core.api.response.ApiResponse;
 import com.quickpick.app.core.api.security.app.AppEndpoint;
 import com.quickpick.app.core.api.security.app.AppRestController;
+import com.quickpick.app.core.iterator.AsyncIterator;
+import com.quickpick.app.core.pick.Pick;
 import com.quickpick.app.core.pick.PickRepository;
+import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Key;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -29,12 +34,27 @@ public final class PickListController extends AppRestController {
 
   @AppEndpoint
   @RequestMapping(path = "/pick/list/", method = RequestMethod.GET)
-  public CompletableFuture<ApiResponse> findPick(
+  public CompletableFuture<ApiResponse> listPicks(
     HttpServletRequest request
   ) {
     return findUser(request)
       .thenCompose(user -> pickRepository.findAllByRecipientId(user.id())
-        .thenApply(picks -> ApiResponse.success(Map.of("picks",
-          picks.stream().map(pick -> pick.information(user.id())).toList()))));
+        .thenCompose(picks -> AsyncIterator.execute(picks,
+          pick -> userRepository().findById(pick.creatorId())
+            .thenApply(creator -> assemblePickInformation(pick, creator.get()))))
+        .thenApply(picks -> ApiResponse.success(Map.of("picks", picks))));
+  }
+
+  public Map<String, Object> assemblePickInformation(
+    Pick pick, User creator
+  ) {
+    var information = Maps.<String, Object>newHashMap();
+    information.put("id", pick.id());
+    information.put("creator_id", creator.id());
+    information.put("creator_name", creator.name());
+    information.put("type", pick.type());
+    information.put("created_at", pick.createdAt());
+    information.put("expires_at", pick.expiresAt());
+    return information;
   }
 }

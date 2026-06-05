@@ -1,6 +1,5 @@
 package com.quickpick.app.core.pick;
 
-import com.google.common.collect.Maps;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -9,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -43,21 +41,4 @@ public class Pick {
   private long createdAt;
   @Column(name = "expires_at", nullable = false)
   private long expiresAt;
-
-  public Map<String, Object> information(UUID recipientId) {
-    var information = Maps.<String, Object>newHashMap();
-    information.put("id", id);
-    information.put("creator_id", creatorId);
-    information.put("type", type);
-    information.put("nonce", nonce);
-    information.put("ciphertext", ciphertext);
-    information.put("tag", tag);
-    var decryptionKey = recipients.stream()
-      .filter(recipient -> recipient.recipientId().equals(recipientId))
-      .findFirst().get().decryptionKey();
-    information.put("decryption_key", decryptionKey);
-    information.put("created_at", createdAt);
-    information.put("expires_at", expiresAt);
-    return information;
-  }
 }

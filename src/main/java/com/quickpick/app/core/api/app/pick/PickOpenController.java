@@ -1,5 +1,6 @@
 package com.quickpick.app.core.api.app.pick;
 
+import com.google.common.collect.Maps;
 import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.response.ApiResponse;
 import com.quickpick.app.core.api.security.app.AppEndpoint;
@@ -17,13 +18,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Key;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class PickFindController extends AppRestController {
+public final class PickOpenController extends AppRestController {
   private final PickRepository pickRepository;
 
-  private PickFindController(
+  private PickOpenController(
     @Qualifier("authenticationKey") Key authenticationKey,
     UserRepository userRepository, PickRepository pickRepository
   ) {
@@ -32,8 +35,8 @@ public final class PickFindController extends AppRestController {
   }
 
   @AppEndpoint
-  @RequestMapping(path = "/pick/find/", method = RequestMethod.POST)
-  public CompletableFuture<ApiResponse> findPick(
+  @RequestMapping(path = "/pick/open/", method = RequestMethod.POST)
+  public CompletableFuture<ApiResponse> openPick(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
@@ -41,19 +44,41 @@ public final class PickFindController extends AppRestController {
     var pickId = body.getUUID("pick_id");
     return findUser(request)
       .thenCompose(user -> pickRepository.findById(pickId)
-        .thenApply(entry -> entry
-          .map(pick -> deletePick(user, pick))
-          .orElse(ApiResponse.error(1000, "Pick not found"))));
+        .thenCompose(entry -> entry
+          .map(pick -> openPick(user, pick))
+          .orElse(ApiResponse.error(1000, "Pick not found").future())));
   }
 
-  private ApiResponse deletePick(
+  private CompletableFuture<ApiResponse> openPick(
     User user, Pick pick
   ) {
     var hasPermission = pick.recipients().stream()
       .anyMatch(recipient -> recipient.recipientId().equals(user.id()));
     if (!hasPermission) {
-      return ApiResponse.error(1001, "Insufficient permissions");
+      return ApiResponse.error(1001, "Insufficient permissions").future();
     }
-    return ApiResponse.success(pick.information(user.id()));
+    return userRepository().findById(pick.creatorId())
+      .thenApply(creator -> ApiResponse.success(
+        assemblePickInformation(pick, user.id(), creator.get())));
+  }
+
+  public Map<String, Object> assemblePickInformation(
+    Pick pick, UUID recipientId, User creator
+  ) {
+    var information = Maps.<String, Object>newHashMap();
+    information.put("id", pick.id());
+    information.put("creator_id", creator.id());
+    information.put("creator_name", creator.name());
+    information.put("type", pick.type());
+    information.put("nonce", pick.nonce());
+    information.put("ciphertext", pick.ciphertext());
+    information.put("tag", pick.tag());
+    var decryptionKey = pick.recipients().stream()
+      .filter(recipient -> recipient.recipientId().equals(recipientId))
+      .findFirst().get().decryptionKey();
+    information.put("decryption_key", decryptionKey);
+    information.put("created_at", pick.createdAt());
+    information.put("expires_at", pick.expiresAt());
+    return information;
   }
 }
