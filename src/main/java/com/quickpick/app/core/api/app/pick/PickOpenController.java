@@ -68,6 +68,7 @@ public final class PickOpenController extends AppRestController {
     var information = Maps.<String, Object>newHashMap();
     information.put("id", pick.id());
     information.put("creator_id", creator.id());
+      information.put("creator_public_key", creator.publicKey());
     information.put("creator_name", creator.name());
     information.put("type", pick.type());
     information.put("nonce", pick.nonce());
