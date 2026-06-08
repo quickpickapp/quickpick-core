@@ -2,7 +2,7 @@ package com.quickpick.app.core.api.app.statistic;
 
 import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.security.app.AppRestController;
-import com.quickpick.app.core.statistic.*;
+import com.quickpick.app.core.statistic.StatisticConfiguration;
 import com.quickpick.app.core.statistic.installation.AppInstallation;
 import com.quickpick.app.core.statistic.installation.AppInstallationRepository;
 import com.quickpick.app.core.statistic.opening.AppOpening;
