@@ -8,6 +8,7 @@ import com.quickpick.app.core.friendship.Friendship;
 import com.quickpick.app.core.friendship.FriendshipRepository;
 import com.quickpick.app.core.friendship.invitation.Invitation;
 import com.quickpick.app.core.friendship.invitation.InvitationRepository;
+import com.quickpick.app.core.notification.NotificationFactory;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,15 +27,18 @@ import java.util.concurrent.CompletableFuture;
 public final class InvitationAcceptController extends AppRestController {
   private final FriendshipRepository friendshipRepository;
   private final InvitationRepository invitationRepository;
+  private final NotificationFactory notificationFactory;
 
   private InvitationAcceptController(
     @Qualifier("authenticationKey") Key authenticationKey,
     UserRepository userRepository, FriendshipRepository friendshipRepository,
-    InvitationRepository invitationRepository
+    InvitationRepository invitationRepository,
+    NotificationFactory notificationFactory
   ) {
     super(authenticationKey, userRepository);
     this.friendshipRepository = friendshipRepository;
     this.invitationRepository = invitationRepository;
+    this.notificationFactory = notificationFactory;
   }
 
   @AppEndpoint
@@ -59,10 +63,19 @@ public final class InvitationAcceptController extends AppRestController {
     if (!invitation.inviteeId().equals(user.id())) {
       return ApiResponse.error(1001).future();
     }
+    sendAcceptNotification(user, invitation);
     invitationRepository.delete(invitation);
     return friendshipRepository.generateAvailableId(UUID::randomUUID)
       .thenCompose(id -> friendshipRepository.save(Friendship.create(id,
         invitation.inviterId(), user.id(), System.currentTimeMillis())))
       .thenApply(_ -> ApiResponse.success());
+  }
+
+  private void sendAcceptNotification(
+    User user, Invitation invitation
+  ) {
+    notificationFactory
+      .create("friendship.invitation.accept.notification", user.name())
+      .sendUserById(invitation.inviterId());
   }
 }

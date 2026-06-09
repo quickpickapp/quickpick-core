@@ -8,6 +8,9 @@ import com.quickpick.app.core.friendship.Friendship;
 import com.quickpick.app.core.friendship.FriendshipRepository;
 import com.quickpick.app.core.friendship.invitation.Invitation;
 import com.quickpick.app.core.friendship.invitation.InvitationRepository;
+import com.quickpick.app.core.locale.LocaleString;
+import com.quickpick.app.core.notification.NotificationFactory;
+import com.quickpick.app.core.pick.PickRecipient;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Key;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,15 +32,18 @@ import java.util.concurrent.CompletableFuture;
 public final class InvitationCreateController extends AppRestController {
   private final FriendshipRepository friendshipRepository;
   private final InvitationRepository invitationRepository;
+  private final NotificationFactory notificationFactory;
 
   private InvitationCreateController(
     @Qualifier("authenticationKey") Key authenticationKey,
     UserRepository userRepository, FriendshipRepository friendshipRepository,
-    InvitationRepository invitationRepository
+    InvitationRepository invitationRepository,
+    NotificationFactory notificationFactory
   ) {
     super(authenticationKey, userRepository);
     this.friendshipRepository = friendshipRepository;
     this.invitationRepository = invitationRepository;
+    this.notificationFactory = notificationFactory;
   }
 
   @AppEndpoint
@@ -80,11 +87,20 @@ public final class InvitationCreateController extends AppRestController {
     if (invitationExists) {
       return ApiResponse.error(1002).future();
     }
+    sendInvitationNotification(inviter, inviteeId);
     return invitationRepository.generateAvailableId(UUID::randomUUID)
       .thenApply(id -> Invitation.create(id, inviter.id(), inviteeId,
         System.currentTimeMillis(), -1))
       .thenCompose(invitationRepository::save)
       .thenApply(invitation -> ApiResponse.success(
         Map.of("invitation_id", invitation.id())));
+  }
+
+  private void sendInvitationNotification(
+    User inviter, UUID inviteeId
+  ) {
+    notificationFactory
+      .create("friendship.invitation.create.notification", inviter.name())
+      .sendUserById(inviteeId);
   }
 }

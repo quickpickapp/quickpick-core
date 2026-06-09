@@ -1,0 +1,26 @@
+{
+  "pick": {
+    "create": {
+      "notification": {
+        "title": "New pick by {0}",
+        "body": "You've received a new pick. Click to open it."
+      }
+    }
+  },
+  "friendship": {
+    "invitation": {
+      "create": {
+        "notification": {
+          "title": "Friend request from {0}",
+          "body": "Click to answer the friend request from {0}."
+        }
+      },
+      "accept": {
+        "notification": {
+          "title": "Friend request accepted from {0}",
+          "body": "Congratulations, {0} has accepted your friend request."
+        }
+      }
+    }
+  }
+}

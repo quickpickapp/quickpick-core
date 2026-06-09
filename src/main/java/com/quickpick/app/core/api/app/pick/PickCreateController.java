@@ -6,6 +6,7 @@ import com.quickpick.app.core.api.security.app.AppEndpoint;
 import com.quickpick.app.core.api.security.app.AppRestController;
 import com.quickpick.app.core.friendship.Friendship;
 import com.quickpick.app.core.friendship.FriendshipRepository;
+import com.quickpick.app.core.locale.LocaleString;
 import com.quickpick.app.core.notification.NotificationFactory;
 import com.quickpick.app.core.pick.Pick;
 import com.quickpick.app.core.pick.PickRecipient;
@@ -105,9 +106,9 @@ public final class PickCreateController extends AppRestController {
   }
 
   private void sendPickNotification(User sender, List<PickRecipient> recipients) {
-    notificationFactory.create("Neuer Pick von " + sender.name(),
-        "Du hast einen neuen Pick erhalten. Klicke um zu öffen.")
-      .sendUserIds(recipients.stream().map(PickRecipient::recipientId).toList());
+    var receivers = recipients.stream().map(PickRecipient::recipientId).toList();
+    notificationFactory.create("pick.create.notification", sender.name())
+      .sendUsersByIds(receivers);
   }
 
   private boolean checkRecipients(
