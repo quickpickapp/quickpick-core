@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.InetAddress;
 import java.security.Key;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -80,29 +79,38 @@ public class SignupController extends AuthenticationController {
     var body = ApiRequestBody.of(payload, response);
     var phoneNumber = body.getString("phone_number");
     var code = body.getString("code");
+    var publicKey = body.getString("public_key");
+    var firebaseToken = body.getString("firebase_token");
     return smsVerification.verifyCode(phoneNumber, code)
-      .thenCompose(approved -> verifySignupCode(request, phoneNumber, approved));
+      .thenCompose(approved -> verifySignupCode(request, phoneNumber, publicKey,
+        firebaseToken, approved));
   }
 
   private CompletableFuture<ApiResponse> verifySignupCode(
-    HttpServletRequest request, String phoneNumber, boolean approved
+    HttpServletRequest request, String phoneNumber, String publicKey,
+    String firebaseToken, boolean approved
   ) {
     if (!approved) {
       return ApiResponse.error(1000).future();
     }
     return userRepository().findByPhoneNumber(phoneNumber)
-      .thenCompose(user -> verifySignupCode(request, phoneNumber, user));
+      .thenCompose(user -> verifySignupCode(request, phoneNumber, publicKey,
+        firebaseToken, user.get()));
   }
 
   private CompletableFuture<ApiResponse> verifySignupCode(
-    HttpServletRequest request, String phoneNumber, Optional<User> user
+    HttpServletRequest request, String phoneNumber, String publicKey,
+    String firebaseToken, User user
   ) {
-    if (user.isEmpty()) {
+    if (user == null) {
       var verificationToken = generateVerificationToken(phoneNumber);
       return ApiResponse.success(Map.of("new_user", true,
         "verification_token", verificationToken)).future();
     }
-    return completeSignup(request, user.get()).thenApply(response ->
+    user.changePublicKey(publicKey);
+    user.changeFirebaseToken(firebaseToken);
+    userRepository().save(user);
+    return completeSignup(request, user).thenApply(response ->
       response.expand(Map.of("new_user", false)));
   }
 

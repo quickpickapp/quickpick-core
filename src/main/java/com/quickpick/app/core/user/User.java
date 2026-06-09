@@ -38,4 +38,12 @@ public final class User {
   public void changeName(String newName) {
     this.name = newName;
   }
+
+  public void changePublicKey(String publicKey) {
+    this.publicKey = publicKey;
+  }
+
+  public void changeFirebaseToken(String firebaseToken) {
+    this.firebaseToken = firebaseToken;
+  }
 }
