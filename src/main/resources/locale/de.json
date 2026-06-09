@@ -2,8 +2,14 @@
   "pick": {
     "create": {
       "notification": {
-        "title": "Neuer Pick von {0}",
-        "body": "Du hast einen neuen Pick erhalten. Klicke, um zu öffnen."
+        "title": "{0}",
+        "body": "Hat dir ein Pick geschickt. Klicke, um zu öffnen"
+      }
+    },
+    "open": {
+      "notification": {
+        "title": "{0}",
+        "body": "Hat dein Pick geöffnet"
       }
     }
   },
@@ -11,14 +17,14 @@
     "invitation": {
       "create": {
         "notification": {
-          "title": "Freundschaftsanfrage von {0}",
-          "body": "Klicke, um die Freundschaftsanfrage von {0} zu beantworten."
+          "title": "{0}",
+          "body": "Hat dir eine Freundschaftsanfrage geschickt"
         }
       },
       "accept": {
         "notification": {
-          "title": "Freundschaftsanfrage von {0} angenommen",
-          "body": "Glückwunsch, {0} hat deine Freundschaftsanfrage angenommen."
+          "title": "{0}",
+          "body": "Hat deine Freundschaftsanfrage angenommen"
         }
       }
     }

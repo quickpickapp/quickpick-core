@@ -5,6 +5,7 @@ import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.response.ApiResponse;
 import com.quickpick.app.core.api.security.app.AppEndpoint;
 import com.quickpick.app.core.api.security.app.AppRestController;
+import com.quickpick.app.core.notification.NotificationFactory;
 import com.quickpick.app.core.pick.Pick;
 import com.quickpick.app.core.pick.PickRepository;
 import com.quickpick.app.core.user.User;
@@ -25,13 +26,16 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public final class PickOpenController extends AppRestController {
   private final PickRepository pickRepository;
+  private final NotificationFactory notificationFactory;
 
   private PickOpenController(
     @Qualifier("authenticationKey") Key authenticationKey,
-    UserRepository userRepository, PickRepository pickRepository
+    UserRepository userRepository, PickRepository pickRepository,
+    NotificationFactory notificationFactory
   ) {
     super(authenticationKey, userRepository);
     this.pickRepository = pickRepository;
+    this.notificationFactory = notificationFactory;
   }
 
   @AppEndpoint
@@ -57,6 +61,8 @@ public final class PickOpenController extends AppRestController {
     if (!hasPermission) {
       return ApiResponse.error(1001, "Insufficient permissions").future();
     }
+    sendOpenNotification(user, pick);
+    pickRepository.delete(pick);
     return userRepository().findById(pick.creatorId())
       .thenApply(creator -> ApiResponse.success(
         assemblePickInformation(pick, user.id(), creator.get())));
@@ -81,5 +87,10 @@ public final class PickOpenController extends AppRestController {
     information.put("created_at", pick.createdAt());
     information.put("expires_at", pick.expiresAt());
     return information;
+  }
+
+  private void sendOpenNotification(User user, Pick pick) {
+    notificationFactory.create("pick.open.notification", user.name())
+      .sendUserById(pick.creatorId());
   }
 }
