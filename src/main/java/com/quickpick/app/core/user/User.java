@@ -26,6 +26,8 @@ public final class User {
   private String phoneNumber;
   @Column(name = "name", nullable = false)
   private String name;
+  @Column(name = "language", nullable = false)
+  private String language;
   @Column(name = "compliant", nullable = false)
   private boolean compliant;
   @Column(name = "public_key", nullable = false, columnDefinition = "TEXT")
@@ -37,6 +39,10 @@ public final class User {
 
   public void changeName(String newName) {
     this.name = newName;
+  }
+
+  public void changeLanguage(String newLanguage) {
+    this.language = newLanguage;
   }
 
   public void changePublicKey(String publicKey) {
