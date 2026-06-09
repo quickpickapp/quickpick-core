@@ -3,6 +3,8 @@ package com.quickpick.app.core.notification;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.collect.Maps;
 import com.quickpick.app.core.iterator.AsyncIterator;
+import com.quickpick.app.core.locale.LocaleString;
+import com.quickpick.app.core.locale.Translation;
 import com.quickpick.app.core.log.Log;
 import com.quickpick.app.core.user.User;
 import com.quickpick.app.core.user.UserRepository;
@@ -24,14 +26,15 @@ public final class Notification {
   private final FirebaseConfiguration firebaseConfiguration;
   private final GoogleCredentials googleCredentials;
   private final UserRepository userRepository;
-  private final String title;
-  private final String body;
+  private final Translation translation;
+  private final LocaleString title;
+  private final LocaleString body;
   private final Map<String, Object> data;
 
   private static final String FIREBASE_URL =
     "https://fcm.googleapis.com/v1/projects/%s/messages:send";
 
-  public void sendUserIds(List<UUID> receiverIds) {
+  public void sendUsersByIds(List<UUID> receiverIds) {
     AsyncIterator.execute(receiverIds, userRepository::findById)
       .thenAccept(receivers -> sendUsers(receivers.stream()
         .filter(Optional::isPresent).map(Optional::get).toList()));
@@ -39,11 +42,16 @@ public final class Notification {
 
   public void sendUsers(List<User> receivers) {
     for (var receiver : receivers) {
-      send(receiver.firebaseToken());
+      sendUser(receiver);
     }
   }
 
-  public void send(String receiver) {
+  public void sendUserById(UUID receiverId) {
+    userRepository.findById(receiverId)
+      .thenAccept(receiver -> receiver.ifPresent(this::sendUser));
+  }
+
+  public void sendUser(User receiver) {
     try {
       HttpClient.newHttpClient().sendAsync(createRequest(receiver),
         HttpResponse.BodyHandlers.ofByteArray());
@@ -52,7 +60,7 @@ public final class Notification {
     }
   }
 
-  private HttpRequest createRequest(String receiver) throws Exception{
+  private HttpRequest createRequest(User receiver) throws Exception{
     googleCredentials.refreshIfExpired();
     var token = googleCredentials.getAccessToken().getTokenValue();
     var url = String.format(FIREBASE_URL, firebaseConfiguration.projectId());
@@ -64,17 +72,21 @@ public final class Notification {
       .build();
   }
 
-  private Map<String, Object> createPayload(String receiver) {
+  private Map<String, Object> createPayload(
+    User receiver
+  ) {
+    var translatedTitle = translation.translateUser(receiver, title);
+    var translatedBody = translation.translateUser(receiver, body);
     var payload = Maps.<String, Object>newHashMap();
     var message = Maps.<String, Object>newHashMap();
-    message.put("token", receiver);
+    message.put("token", receiver.firebaseToken());
     var content = Maps.<String, Object>newHashMap();
-    content.put("title", title);
-    content.put("body", body);
+    content.put("title", translatedTitle);
+    content.put("body", translatedBody);
     content.putAll(data);
     message.put("data", content);
     message.put("android", createAndroidPayload());
-    message.put("apns", createIOSPayload());
+    message.put("apns", createIOSPayload(translatedTitle, translatedBody));
     payload.put("message", message);
     return payload;
   }
@@ -88,7 +100,7 @@ public final class Notification {
     return android;
   }
 
-  private Map<String, Object> createIOSPayload() {
+  private Map<String, Object> createIOSPayload(String title, String body) {
     var apns = Maps.<String, Object>newHashMap();
     var headers = Maps.<String, Object>newHashMap();
     headers.put("apns-priority", "10");
