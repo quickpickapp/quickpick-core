@@ -2,6 +2,7 @@ package com.quickpick.app.core.notification;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.collect.Maps;
+import com.quickpick.app.core.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 
@@ -13,6 +14,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class Notification {
+  private final Log log;
   private final FirebaseConfiguration firebaseConfiguration;
   private final GoogleCredentials googleCredentials;
   private final String receiver;
@@ -23,24 +25,31 @@ public final class Notification {
   private static final String FIREBASE_URL =
     "https://fcm.googleapis.com/v1/projects/%s/messages:send";
 
-  public void send() throws Exception {
+  public void send() {
+    try {
+      HttpClient.newHttpClient().sendAsync(createRequest(),
+        HttpResponse.BodyHandlers.ofByteArray());
+    } catch (Exception exception) {
+      log.processError(exception);
+    }
+  }
+
+  private HttpRequest createRequest() throws Exception{
     googleCredentials.refreshIfExpired();
     var token = googleCredentials.getAccessToken().getTokenValue();
     var url = String.format(FIREBASE_URL, firebaseConfiguration.projectId());
     var requestBody = new JSONObject(createPayload());
-    var requestBuilder = HttpRequest.newBuilder().uri(URI.create(url))
+    return HttpRequest.newBuilder().uri(URI.create(url))
       .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
       .setHeader("Content-Type", "application/json")
       .setHeader("Authorization", "Bearer " + token)
       .build();
-    HttpClient.newHttpClient().sendAsync(requestBuilder,
-      HttpResponse.BodyHandlers.ofByteArray());
   }
 
   private Map<String, Object> createPayload() {
     var payload = Maps.<String, Object>newHashMap();
     var message = Maps.<String, Object>newHashMap();
-    message.put("topic", receiver);
+    message.put("token", receiver);
     var content = Maps.<String, Object>newHashMap();
     content.put("title", title);
     content.put("body", body);
@@ -55,6 +64,9 @@ public final class Notification {
   private Map<String, Object> createAndroidPayload() {
     var android = Maps.<String, Object>newHashMap();
     android.put("priority", "HIGH");
+    var notification = Maps.<String, Object>newHashMap();
+    notification.put("channel_id", "quickpick");
+    android.put("notification", notification);
     return android;
   }
 
