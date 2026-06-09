@@ -6,6 +6,7 @@ import com.quickpick.app.core.api.security.app.AppEndpoint;
 import com.quickpick.app.core.api.security.app.AppRestController;
 import com.quickpick.app.core.friendship.Friendship;
 import com.quickpick.app.core.friendship.FriendshipRepository;
+import com.quickpick.app.core.notification.NotificationFactory;
 import com.quickpick.app.core.pick.Pick;
 import com.quickpick.app.core.pick.PickRecipient;
 import com.quickpick.app.core.pick.PickRepository;
@@ -30,15 +31,18 @@ import java.util.concurrent.CompletableFuture;
 public final class PickCreateController extends AppRestController {
   private final PickRepository pickRepository;
   private final FriendshipRepository friendshipRepository;
+  private final NotificationFactory notificationFactory;
 
   private PickCreateController(
     @Qualifier("authenticationKey") Key authenticationKey,
     UserRepository userRepository, PickRepository pickRepository,
-    FriendshipRepository friendshipRepository
+    FriendshipRepository friendshipRepository,
+    NotificationFactory notificationFactory
   ) {
     super(authenticationKey, userRepository);
     this.pickRepository = pickRepository;
     this.friendshipRepository = friendshipRepository;
+    this.notificationFactory = notificationFactory;
   }
 
   private static final long MINIMUM_PICK_DURATION = 60 * 1000L;
@@ -95,8 +99,15 @@ public final class PickCreateController extends AppRestController {
     var currentTime = System.currentTimeMillis();
     var pick = Pick.create(pickId, user.id(), type, nonce, ciphertext, tag,
       recipients, currentTime, currentTime + duration);
+    sendPickNotification(user, recipients);
     return pickRepository.save(pick).thenApply(_ ->
       ApiResponse.success(Map.of("pick_id", pickId)));
+  }
+
+  private void sendPickNotification(User sender, List<PickRecipient> recipients) {
+    notificationFactory.create("Neuer Pick von " + sender.name(),
+        "Du hast einen neuen Pick erhalten. Klicke um zu öffen.")
+      .sendUserIds(recipients.stream().map(PickRecipient::recipientId).toList());
   }
 
   private boolean checkRecipients(
