@@ -36,8 +36,11 @@ public final class PickListController extends AppRestController {
   public CompletableFuture<ApiResponse> listPicks(
     HttpServletRequest request
   ) {
+    var currentTime = System.currentTimeMillis();
     return findUser(request)
       .thenCompose(user -> pickRepository.findAllByRecipientId(user.id())
+        .thenApply(picks -> picks.stream()
+          .filter(pick -> currentTime <= pick.expiresAt()).toList())
         .thenCompose(picks -> AsyncIterator.execute(picks,
           pick -> userRepository().findById(pick.creatorId())
             .thenApply(creator -> assemblePickInformation(pick, creator.get()))))

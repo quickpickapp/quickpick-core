@@ -61,11 +61,21 @@ public final class PickOpenController extends AppRestController {
     if (!hasPermission) {
       return ApiResponse.error(1001, "Insufficient permissions").future();
     }
-    sendOpenNotification(user, pick);
-    pickRepository.delete(pick);
+    if (System.currentTimeMillis() > pick.expiresAt()) {
+      return ApiResponse.error(1002, "Expired").future();
+    }
     return userRepository().findById(pick.creatorId())
-      .thenApply(creator -> ApiResponse.success(
-        assemblePickInformation(pick, user.id(), creator.get())));
+      .thenApply(creator -> openPick(user, pick, creator.get()));
+  }
+
+  private ApiResponse openPick(
+    User user, Pick pick, User creator
+  ) {
+    var information = assemblePickInformation(pick, user.id(), creator);
+    sendOpenNotification(user, pick);
+    pick.removeRecipient(user.id());
+    pickRepository.save(pick);
+    return ApiResponse.success(information);
   }
 
   public Map<String, Object> assemblePickInformation(

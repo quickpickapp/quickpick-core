@@ -41,4 +41,8 @@ public class Pick {
   private long createdAt;
   @Column(name = "expires_at", nullable = false)
   private long expiresAt;
+
+  public void removeRecipient(UUID recipientId) {
+    recipients.removeIf(recipient -> recipient.recipientId().equals(recipientId));
+  }
 }
