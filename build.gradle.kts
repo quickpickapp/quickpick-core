@@ -36,12 +36,12 @@ dependencies {
   implementation("commons-beanutils:commons-beanutils:1.11.0")
 
   implementation("org.postgresql:postgresql:42.7.11")
-  implementation("org.hibernate.orm:hibernate-core:7.4.0.Final")
+  implementation("org.hibernate.orm:hibernate-core:7.4.1.Final")
   implementation("org.reflections:reflections:0.10.2")
 
   implementation("org.springframework.boot:spring-boot-starter-web:4.0.6")
-  implementation("org.springframework:spring-core:7.0.7")
-  implementation("org.springframework.data:spring-data-jpa:4.0.5")
+  implementation("org.springframework:spring-core:7.0.8")
+  implementation("org.springframework.data:spring-data-jpa:4.1.0")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa:4.0.6")
   implementation("com.h2database:h2:2.4.240")
 
