@@ -34,6 +34,9 @@ public final class UserNameController extends AppRestController {
   ) {
     var body = ApiRequestBody.of(payload, response);
     var name = body.getSanitizedString("name");
+    if (name.isBlank()) {
+      return ApiResponse.error(1000).future();
+    }
     return findUser(request)
       .thenCompose(user -> changeUserName(user, name));
   }

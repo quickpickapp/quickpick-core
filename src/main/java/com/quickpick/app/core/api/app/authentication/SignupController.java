@@ -147,12 +147,15 @@ public class SignupController extends AuthenticationController {
     if (!legalAccepted) {
       return CompletableFuture.completedFuture(null);
     }
+    var name = body.getSanitizedString("name");
+    if (name.isBlank()) {
+      return CompletableFuture.completedFuture(null);
+    }
     return userDeviceRepository.generateAvailableId(UUID::randomUUID)
-      .thenCompose(deviceId -> signupUser(userId, phoneNumber,
-        body.getSanitizedString("name"), body.getString("language"),
-        body.getString("public_key"), body.getString("firebase_token"),
-        legalAccepted, deviceId, body.getString("device_id"),
-        body.getString("operating_system"),
+      .thenCompose(deviceId -> signupUser(userId, phoneNumber, name,
+        body.getString("language"), body.getString("public_key"),
+        body.getString("firebase_token"), legalAccepted, deviceId,
+        body.getString("device_id"), body.getString("operating_system"),
         body.getString("operating_system_version"),
         body.getString("device_brand"), body.getString("device_model"),
         body.getString("device_name")));
