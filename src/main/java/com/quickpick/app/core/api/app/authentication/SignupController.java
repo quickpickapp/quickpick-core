@@ -95,7 +95,7 @@ public class SignupController extends AuthenticationController {
     }
     return userRepository().findByPhoneNumber(phoneNumber)
       .thenCompose(user -> verifySignupCode(request, phoneNumber, publicKey,
-        firebaseToken, user.get()));
+        firebaseToken, user.orElse(null)));
   }
 
   private CompletableFuture<ApiResponse> verifySignupCode(
