@@ -73,7 +73,7 @@ public final class PickOpenController extends AppRestController {
   ) {
     var information = assemblePickInformation(pick, user.id(), creator);
     sendOpenNotification(user, pick);
-    pick.removeRecipient(user.id());
+    pick.openBy(user.id());
     pickRepository.save(pick);
     return ApiResponse.success(information);
   }

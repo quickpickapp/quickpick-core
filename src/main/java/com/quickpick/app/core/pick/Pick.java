@@ -37,12 +37,14 @@ public class Pick {
     joinColumns = @JoinColumn(name = "pick_id")
   )
   private List<PickRecipient> recipients;
+  @Column(name = "opened_by", nullable = false)
+  private List<UUID> openedBy;
   @Column(name = "created_at", nullable = false, updatable = false)
   private long createdAt;
   @Column(name = "expires_at", nullable = false)
   private long expiresAt;
 
-  public void removeRecipient(UUID recipientId) {
-    recipients.removeIf(recipient -> recipient.recipientId().equals(recipientId));
+  public void openBy(UUID userId) {
+    openedBy.add(userId);
   }
 }

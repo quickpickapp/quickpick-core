@@ -40,7 +40,9 @@ public final class PickListController extends AppRestController {
     return findUser(request)
       .thenCompose(user -> pickRepository.findAllByRecipientId(user.id())
         .thenApply(picks -> picks.stream()
-          .filter(pick -> currentTime <= pick.expiresAt()).toList())
+          .filter(pick -> currentTime <= pick.expiresAt())
+          .filter(pick -> !pick.openedBy().contains(user.id()))
+          .toList())
         .thenCompose(picks -> AsyncIterator.execute(picks,
           pick -> userRepository().findById(pick.creatorId())
             .thenApply(creator -> assemblePickInformation(pick, creator.get()))))

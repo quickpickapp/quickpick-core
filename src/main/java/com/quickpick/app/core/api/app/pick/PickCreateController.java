@@ -1,12 +1,12 @@
 package com.quickpick.app.core.api.app.pick;
 
+import com.google.api.client.util.Lists;
 import com.quickpick.app.core.api.request.ApiRequestBody;
 import com.quickpick.app.core.api.response.ApiResponse;
 import com.quickpick.app.core.api.security.app.AppEndpoint;
 import com.quickpick.app.core.api.security.app.AppRestController;
 import com.quickpick.app.core.friendship.Friendship;
 import com.quickpick.app.core.friendship.FriendshipRepository;
-import com.quickpick.app.core.locale.LocaleString;
 import com.quickpick.app.core.notification.NotificationFactory;
 import com.quickpick.app.core.pick.Pick;
 import com.quickpick.app.core.pick.PickRecipient;
@@ -99,7 +99,7 @@ public final class PickCreateController extends AppRestController {
   ) {
     var currentTime = System.currentTimeMillis();
     var pick = Pick.create(pickId, user.id(), type, nonce, ciphertext, tag,
-      recipients, currentTime, currentTime + duration);
+      recipients, Lists.newArrayList(), currentTime, currentTime + duration);
     sendPickNotification(user, recipients);
     return pickRepository.save(pick).thenApply(_ ->
       ApiResponse.success(Map.of("pick_id", pickId)));
