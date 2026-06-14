@@ -11,6 +11,12 @@
         "title": "{0}",
         "body": "Hat dein Pick geöffnet"
       }
+    },
+    "react": {
+      "notification": {
+        "title": "{0} • {1}",
+        "body": "Hat auf dein Pick reagiert"
+      }
     }
   },
   "friendship": {
