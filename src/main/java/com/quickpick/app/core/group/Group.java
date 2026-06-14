@@ -25,7 +25,7 @@ public class Group {
   private UUID id;
   @Column(name = "name", nullable = false)
   private String name;
-  @Column(name = "member_ids", nullable = false, updatable = false)
+  @Column(name = "member_ids", nullable = false)
   private List<UUID> memberIds;
   @Column(name = "created_at", nullable = false, updatable = false)
   private long createdAt;
