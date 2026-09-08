@@ -55,7 +55,7 @@ dependencies {
 
   implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20260313.1")
 
-  implementation("com.google.api-client:google-api-client:2.9.0")
+  implementation("com.google.api-client:google-api-client:2.9.1")
 
   implementation("com.twilio.sdk:twilio:13.0.0")
 }
