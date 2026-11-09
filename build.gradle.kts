@@ -57,7 +57,7 @@ dependencies {
 
   implementation("com.google.api-client:google-api-client:2.9.2")
 
-  implementation("com.twilio.sdk:twilio:13.1.0")
+  implementation("com.twilio.sdk:twilio:13.2.0")
 }
 
 tasks.test {
