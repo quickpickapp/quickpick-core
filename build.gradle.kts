@@ -51,7 +51,7 @@ dependencies {
 
   implementation("com.nimbusds:nimbus-jose-jwt:10.10")
 
-  implementation("com.maxmind.geoip2:geoip2:5.2.0")
+  implementation("com.maxmind.geoip2:geoip2:5.3.0")
 
   implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261110.1")
 
