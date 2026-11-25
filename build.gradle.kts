@@ -39,7 +39,7 @@ dependencies {
   implementation("org.hibernate.orm:hibernate-core:7.4.17.Final")
   implementation("org.reflections:reflections:0.10.2")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:4.1.2")
+  implementation("org.springframework.boot:spring-boot-starter-web:4.2.0")
   implementation("org.springframework:spring-core:7.1.0")
   implementation("org.springframework.data:spring-data-jpa:4.1.2")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa:4.2.0")
